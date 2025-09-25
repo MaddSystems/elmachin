@@ -1,0 +1,22 @@
+# ChatGPT WhatsApp & Messenger Webhook Requirements
+
+# Web Framework
+flask==3.0.0
+asgiref==3.7.2
+uvicorn==0.24.0
+
+# HTTP Client
+aiohttp==3.9.1
+
+# OpenAI API
+openai==0.28.1
+
+# Environment Variables
+python-dotenv==1.0.0
+
+# WebSocket Support for Real-time Web Interface
+flask-socketio==5.3.6
+eventlet==0.33.3
+
+# Async Support
+asyncio

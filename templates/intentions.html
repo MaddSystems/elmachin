@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Sellers</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/free-jqgrid/css/ui.jqgrid.min.css">
+</head>
+<body class="bg-light">
+    <div class="container py-4">
+        <h1 class="text-center mb-4">Gestión de Intenciones</h1>
+
+        <table id="grid"></table>
+        <div id="pager"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/free-jqgrid/js/jquery.jqgrid.min.js"></script>
+
+    <!-- <script> 
+        // $(document).ready(function () {
+            // $("#grid").jqGrid({
+                // url: "/sellers",
+                // datatype: "json",
+                // mtype: "GET",
+                // colNames: ["ID", "Name", "Email", "Phone"],
+                // colModel: [
+                    // { name: "id", index: "id", width: 50, key: true, sorttype: "int" },
+                    // { name: "name", index: "name", width: 150, editable: true },
+                    // { name: "email", index: "email", width: 200, editable: true },
+                    // { name: "phone", index: "phone", width: 120, editable: true }
+                // ],
+                // pager: "#pager",
+                // rowNum: 10,
+                // rowList: [10, 20, 30],
+                // sortname: "id",
+                // sortorder: "desc",
+                // viewrecords: true,
+                // gridview: true,
+                // autowidth: true,
+                // height: "auto",
+                // caption: "Lista de Sellers",
+                // loadError: function(xhr, status, error) {
+                    // console.error("Error loading data:", error, xhr.responseText);
+                // }
+            // });
+
+            // $("#grid").jqGrid('navGrid', '#pager',
+                // { edit: true, add: true, del: true, search: false, refresh: true },
+                // {
+                    // url: "/sellers",
+                    // mtype: "PUT",
+                    // closeAfterEdit: true,
+                    // serializeEditData: function(postData) {
+                        // return JSON.stringify(postData);
+                    // },
+                    // ajaxEditOptions: { contentType: "application/json" },
+                    // afterSubmit: function(response) {
+                        // return response.responseJSON.error ? [false, response.responseJSON.error] : [true, "", ""];
+                    // }
+                // },
+                // {
+                    // url: "/sellers",
+                    // mtype: "POST",
+                    // closeAfterAdd: true,
+                    // serializeEditData: function(postData) {
+                        // return JSON.stringify(postData);
+                    // },
+                    // ajaxEditOptions: { contentType: "application/json" },
+                    // afterSubmit: function(response) {
+                        // return response.responseJSON.error ? [false, response.responseJSON.error] : [true, "", ""];
+                    // }
+                // },
+                // {
+                    // url: "/sellers",
+                    // mtype: "DELETE",
+                    // closeAfterDel: true,
+                    // serializeDelData: function(postData) {
+                        // return JSON.stringify(postData);
+                    // },
+                    // ajaxDelOptions: { contentType: "application/json" },
+                    // afterSubmit: function(response) {
+                        // return response.responseJSON.error ? [false, response.responseJSON.error] : [true, "", ""];
+                    // }
+                // }
+            // );
+        // });
+    </script>-->
+
+<script>
+
+    $(document).ready(function () {
+        $("#grid").jqGrid({
+            url: "/sellers",
+            datatype: "json",
+            mtype: "GET",
+            colNames: ["ID", "Name", "Email", "Phone"],
+            colModel: [
+                { name: "id", index: "id", width: 50, key: true, sorttype: "int" },
+                { name: "name", index: "name", width: 150, editable: true },
+                { name: "email", index: "email", width: 200, editable: true },
+                { name: "phone", index: "phone", width: 120, editable: true }
+            ],
+            pager: "#pager",
+            rowNum: 10,
+            rowList: [10, 20, 30],
+            sortname: "id",
+            sortorder: "desc",
+            viewrecords: true,
+            gridview: true,
+            autowidth: true,
+            height: "auto",
+            caption: "Lista de Sellers",
+            loadError: function(xhr, status, error) {
+                console.error("Error loading data:", error, xhr.responseText);
+            }
+        });
+
+        $("#grid").jqGrid('navGrid', '#pager',
+            { edit: true, add: true, del: true, search: false, refresh: true },
+            {
+                url: "/sellers",
+                mtype: "PUT",
+                closeAfterEdit: true,
+                serializeEditData: function(postData) {
+                    return JSON.stringify(postData);
+                },
+                ajaxEditOptions: { contentType: "application/json" },
+                afterSubmit: function(response) {
+                    return response.responseJSON.error ? [false, response.responseJSON.error] : [true, "", ""];
+                }
+            },
+            {
+                url: "/sellers",
+                mtype: "POST",
+                closeAfterAdd: true,
+                afterShowForm: function ($form) {
+                    // Agregar campo de contraseña al formulario
+                    $form.append('<label for="password">Password:</label> <input type="password" id="password" name="password" class="FormElement ui-widget-content ui-corner-all">');
+                },
+                serializeEditData: function(postData) {
+                    postData.password = $("#password").val(); // Agregar la contraseña al envío
+                    return JSON.stringify(postData);
+                },
+                ajaxEditOptions: { contentType: "application/json" },
+                afterSubmit: function(response) {
+                    return response.responseJSON.error ? [false, response.responseJSON.error] : [true, "", ""];
+                }
+            },
+            {
+                url: "/sellers",
+                mtype: "DELETE",
+                closeAfterDel: true,
+                serializeDelData: function(postData) {
+                    return JSON.stringify(postData);
+                },
+                ajaxDelOptions: { contentType: "application/json" },
+                afterSubmit: function(response) {
+                    return response.responseJSON.error ? [false, response.responseJSON.error] : [true, "", ""];
+                }
+            }
+        );
+    });
+</script>
+
+</body>
+</html>

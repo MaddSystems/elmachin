@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- <meta charset="UTF-8"> -->
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+    <!-- <title>Inicio de Sesión - Vendedor</title> -->
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"> -->
+    <!-- <style> 
+        /* body { */
+            /* background-color: #f8f9fa; */
+            /* display: flex; */
+            /* justify-content: center; */
+            /* align-items: center; */
+            /* height: 100vh; */
+            /* margin: 0; */
+        /* } */
+        /* .login-container { */
+            /* width: 100%; */
+            /* max-width: 400px; */
+            /* padding: 20px; */
+            /* background: #ffffff; */
+            /* border-radius: 8px; */
+            /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
+        /* } */
+        /* .login-container h1 { */
+            /* font-size: 24px; */
+            /* margin-bottom: 20px; */
+            /* color: #333333; */
+            /* text-align: center; */
+        /* } */
+    /* </style> -->
+<!-- </head> -->
+<!-- <body> -->
+<!-- <div class="login-container"> -->
+    <!-- <h1>Inicio de Sesión</h1> -->
+    <!-- <form method="POST" action="/login"> -->
+        <!-- {% if error %} -->
+            <!-- <div class="alert alert-danger" role="alert"> -->
+                <!-- {{ error }} -->
+            <!-- </div> -->
+        <!-- {% endif %} -->
+        <!-- <div class="mb-3"> -->
+            <!-- <label for="username" class="form-label">Usuario</label> -->
+            <!-- <input type="text" class="form-control" id="username" name="username" placeholder="Usuario" required> -->
+        <!-- </div> -->
+        <!-- <div class="mb-3"> -->
+            <!-- <label for="password" class="form-label">Contraseña</label> -->
+            <!-- <input type="password" class="form-control" id="password" name="password" placeholder="Contraseña" required> -->
+        <!-- </div> -->
+        <!-- <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button> -->
+    <!-- </form> -->
+    <!-- <p class="text-center mt-3"> -->
+        <!-- <small>¿Olvidaste tu contraseña? <a href="#">Contáctanos</a>.</small> -->
+    <!-- </p> -->
+<!-- </div> -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión</title>
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1e599b, #123d6a);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .login-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        .login-container h1 {
+            color: #1e599b;
+            font-weight: 600;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        label {
+            display: block;
+            text-align: left;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        input[type="text"], input[type="password"] {
+            width: calc(100% - 20px);
+            padding: 14px;
+            margin-bottom: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            outline: none;
+        }
+        input:focus {
+            border-color: #1e599b;
+            box-shadow: 0 0 8px rgba(30, 89, 155, 0.5);
+        }
+        button {
+            background: #1e599b;
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; /* Espacio entre el texto y el ícono */
+        }
+        button:hover {
+            background: #123d6a; /* Variación más oscura del color principal */
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+        .alert {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .text-center {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+        .text-center a {
+            color: #1e599b;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .text-center a:hover {
+            text-decoration: underline;
+        }
+
+        /* Animación de entrada */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            input[type="text"], input[type="password"] {
+                padding: 12px;
+                font-size: 15px;
+            }
+            button {
+                font-size: 16px;
+                padding: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 18px;
+            }
+            input[type="text"], input[type="password"] {
+                padding: 10px;
+                font-size: 14px;
+            }
+            button {
+                font-size: 15px;
+                padding: 10px;
+            }
+        }
+    </style>
+    <!-- Agregamos Font Awesome para los íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="login-container">
+        <h1>Bienvenido Vendedor GPScontrol</h1>
+        <form method="POST" action="/login">
+            {% if error %}
+                <div class="alert" role="alert">
+                    {{ error }}
+                </div>
+            {% endif %}
+            <label for="username">Usuario:</label>
+            <input type="text" id="username" name="username" placeholder="Escribe tu usuario" required>
+
+            <label for="password">Contraseña:</label>
+            <input type="password" id="password" name="password" placeholder="Escribe tu contraseña" required>
+
+            <button type="submit">
+                Iniciar Sesión <i class="fas fa-arrow-right"></i>
+            </button>
+        </form>
+        <p class="text-center">
+            <small>¿Olvidaste tu contraseña? <a href="#">Contáctanos</a>.</small>
+        </p>
+    </div>
+
+<script>
+    document.querySelector('form').addEventListener('submit', function (event) {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        if (!username || !password) {
+            event.preventDefault();
+            alert("Por favor, completa todos los campos.");
+        }
+    });
+</script>
+</body>
+</html>

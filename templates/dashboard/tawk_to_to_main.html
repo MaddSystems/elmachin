@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Personalizado con Respaldo</title>
+    <style>
+        /* Estilos para los widgets */
+        .chatbot-container {
+            font-family: 'Helvetica', sans-serif;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s;
+            display: none; /* Oculto inicialmente */
+        }
+        .chatbot-widget {
+            width: 150px;
+            height: 177px;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            position: relative;
+            animation: pulse 1.5s infinite, wave 1.5s infinite;
+            margin-bottom: 30px; /* Espacio ajustado entre la imagen y el letrero */
+        }
+        .chatbot-widget img {
+            width: 150px;
+            height: 177px;
+            border-radius: 0; /* Imagen cuadrada */
+            margin: 0; /* Elimina márgenes */
+            padding: 0; /* Elimina padding */
+            position: relative; /* Para asegurar que se posicione bien */
+            top: 0px; /* Ajuste para mover la imagen un poco más arriba */
+        }
+        .chatbot-label {
+            background-color: #1e599b;
+            color: white;
+            padding: 8px 16px; /* Más espacio para mejor visibilidad */
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            position: absolute;
+            bottom: -25px; /* Ajuste preciso para que se vea bien */
+            z-index: 15; /* Mayor prioridad */
+            animation: blink 1.5s infinite;
+        }
+        .close-widget {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            background-color: white;
+            color: red;
+            font-size: 18px;
+            font-weight: bold;
+            width: 28px;
+            height: 28px;
+            text-align: center;
+            border-radius: 50%;
+            line-height: 28px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 20; /* Siempre encima */
+        }
+        .chatbot-container:hover .close-widget {
+            display: block;
+        }
+        .chatbot-container:hover {
+            transform: scale(1.05);
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        @keyframes wave {
+            0% { box-shadow: 0 0 10px rgba(6, 97, 136, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(0, 128, 255, 0.8); }
+            100% { box-shadow: 0 0 10px rgba(6, 97, 136, 0.5); }
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style> 
+<style>
+    .typing-indicator {
+      font-size: 18px;
+      font-weight: bold;
+    }
+  
+    .typing-indicator span {
+      font-size: 26px; /* Puntos más grandes */
+      font-weight: bold;
+      display: inline-block;
+      color: #fff700; /* Color azul (puedes cambiarlo) */
+      margin-left: 8px; /* Aumenta la separación entre los puntos */
+      animation: blink 1.5s infinite;
+      transform: scale(1.5);
+    }
+    
+    .typing-indicator span:nth-child(1) { animation-delay: 0s; }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.3s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.6s; }
+  
+    @keyframes blink {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.8); } /* Crece un poco al aparecer */
+    }
+  </style>
+  <style>
+
+    .semaforo {
+      width: 50px;
+      background-color: #333;
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .luz {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: #111;
+      box-shadow: inset 0 0 5px #000;
+      transition: background-color 0.3s;
+    }
+
+    .rojo.encendido {
+      background-color: red;
+    }
+
+    .verde.encendido {
+      background-color: limegreen;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 5px 10px;
+      font-size: 8px;
+      cursor: pointer;
+    }
+  </style>
+
+  <script>
+    let enRojo = true;
+    function cambiarLuz() {
+      const luzRoja = document.getElementById("luzRoja");
+      const luzVerde = document.getElementById("luzVerde");
+      const input = document.getElementById("inputTexto");
+
+      if (enRojo) {
+        luzRoja.classList.remove("encendido");
+        luzVerde.classList.add("encendido");
+        input.disabled = false;
+        input.focus();
+      } else {
+        luzRoja.classList.add("encendido");
+        luzVerde.classList.remove("encendido");
+        input.disabled = true;
+        input.value = ""; // opcional: borra el texto
+      }
+
+      enRojo = !enRojo;
+    }
+
+  </script>
+
+<div class="semaforo">
+    <div id="luzRoja" class="luz rojo encendido"></div>
+    <div id="luzVerde" class="luz verde"></div>
+  </div>
+
+<button onclick="cambiarLuz()">Cambiar</button>
+ <input id="inputTexto" type="text" placeholder="Escribe aquí" disabled />
+
+    <body>
+        <!-- Widget personalizado -->
+        <div class="chatbot-container" id="custom-chatbot">
+            <div class="close-widget" onclick="closeWidget(event)">x</div>
+            <div class="chatbot-widget" id="chatbot-widget">
+                <img src="https://machin.gpscontrol.com.mx/static/images/widget-machin.jpg" alt="Chatbot">
+            </div>
+            <div class="chatbot-label">En línea</div>
+        </div>
+
+    <!-- Widget de Tawk.to -->
+    <div class="tawk-to-widget" id="tawk-to-widget">
+        <div id="tawk-to-container"></div> <!-- Contenedor para el script de Tawk.to -->
+    </div>
+
+
+
+<div id="typing-indicator" style="display: block;" class="typing-indicator">
+    El Machín está escribiendo<span> . </span><span> . </span><span> . </span>
+</div>
+
+
+<script>
+  function showTyping() {
+    document.getElementById("typing-indicator").style.display = "block";
+  }
+
+  function hideTyping() {
+    document.getElementById("typing-indicator").style.display = "none";
+  }
+
+  // Ejemplo de uso
+  showTyping(); // Llamar cuando empiece la petición
+  setTimeout(hideTyping, 3000); // Ocultar después de 3 segundos
+</script>
+
+
+    <script>
+        // Configuración inicial
+        const CHATBOT_URL = 'https://machin.gpscontrol.com.mx/'; // URL del chatbot
+        const TAWK_TO_ID = '5b22c2c670971d3d70af76cb/1eec473as'; // Asegúrate de poner tu ID real
+
+        // Función para cargar Tawk.to como respaldo
+        function loadTawkTo() {
+            if (window.Tawk_API) {
+                console.log("Tawk.to ya está cargado.");
+                return;
+            }
+
+            let script = document.createElement("script");
+            script.src = `https://embed.tawk.to/${TAWK_TO_ID}`;
+            script.async = true;
+            script.charset = 'UTF-8';
+            script.setAttribute('crossorigin', '*');
+
+            document.body.appendChild(script);
+            console.log("Tawk.to cargado como respaldo.");
+        }
+
+        async function checkChatbotAvailability() {
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const response = await fetch(CHATBOT_URL, { method: 'HEAD', signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (response.ok) {
+            console.log("Chatbot disponible.");
+            return true;
+        } else {
+            console.warn(`Error del servidor: ${response.status} ${response.statusText}`);
+            return false;
+        }
+    } catch (error) {
+        console.error("Error cargando el chatbot:", error.message || error);
+        return false;
+    }
+}        
+
+        // Función principal para manejar el flujo
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAvailable = await checkChatbotAvailability();
+
+            if (isAvailable) {
+                console.log("Mostrando widget personalizado.");
+                document.getElementById('custom-chatbot').style.display = 'flex';
+            } else {
+                console.error("Chatbot no disponible. Mostrando Tawk.to...");
+                document.getElementById('tawk-to-widget').style.display = 'block';
+                loadTawkTo();
+            }
+
+            // Agrega funcionalidad al widget personalizado
+            document.getElementById('chatbot-widget').addEventListener('click', () => {
+                window.open(CHATBOT_URL, '_blank', 'noopener,noreferrer');
+            });
+        });
+
+        // Función para cerrar el widget personalizado
+        function closeWidget(event) {
+            event.stopPropagation();
+            const chatbotContainer = document.querySelector('.chatbot-container');
+            chatbotContainer.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

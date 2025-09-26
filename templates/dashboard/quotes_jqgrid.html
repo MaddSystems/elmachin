@@ -1,0 +1,94 @@
+{% extends "/dashboard/base_return.html" %}
+{% block title %}Model{% endblock %}
+
+{% block content %}
+
+    <div class="container py-4">
+        <h1 class="text-center mb-4">Gestión de Cotizaciones</h1>
+
+        <table id="grid"></table>
+        <div id="pager"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/free-jqgrid/js/jquery.jqgrid.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $("#grid").jqGrid({
+                url: '/get_quotes',
+                datatype: "json",
+                mtype: "GET",
+                colNames: ["ID", "Unidades", "Cantidad", "Tipo de Servicio", "Zona", "Descripción", "Status", "Experiencia", "Cliente", "Fechas"],
+                colModel: [
+                    { label: 'ID', name: 'id', width: 50, key: true, editable: false },
+                    { label: 'Unidades', name: 'intention', width: 100, editable: true },
+                    { label: 'Cantidad', name: 'quantity_units', width: 100, editable: true },
+                    { label: 'Tipo de Servicio', name: 'service_type', width: 100, editable: true },
+                    { label: 'Zona', name: 'zona', width: 100, editable: true },
+                    { label: 'Descripcion', name: 'description', width: 150, editable: true },
+                    {
+                        label: 'Status',
+                        name: 'status',
+                        width: 100,
+                        editable: true,
+                        edittype: 'select',
+                        editoptions: {
+                            value: "in_progress:In Progress;closed:Closed;abandoned:Abandoned;in_attention:In Attention"
+                        }
+                    },
+                    { label: 'Experiencia', name: 'know_of', width: 100, editable: true },
+                    { label: 'Cliente', name: 'user_id', width: 100, editable: true },
+                    { label: 'Fecha de Creación', name: 'created_at', width: 150, formatter: 'date', formatoptions: { srcformat: 'Y-m-d H:i:s', newformat: 'd/m/Y H:i' }, editable: false }
+                ],
+                pager: "#pager",
+                rowNum: 30,
+                rowList: [30, 100, 200],
+                sortname: "id",
+                sortorder: "desc",
+                viewrecords: true,
+                gridview: true,
+                height: "auto",
+                caption: "Lista de Cotizaciones",
+                height: 400,
+                width: 1200,
+                loadError: function(xhr, status, error) {
+                    console.error("Error loading data:", error, xhr.responseText);
+                }
+            });
+        
+            // Habilitar la barra de búsqueda
+            $("#grid").jqGrid('filterToolbar', {
+                stringResult: true,
+                searchOnEnter: false,
+                defaultSearch: "cn"
+            });
+        
+            $("#grid").jqGrid('navGrid', '#pager',
+                { edit: true, add: false, del: false, search: false, refresh: true },
+                {
+                    url: "/clasification_quote",
+                    mtype: "PUT",
+                    closeAfterEdit: true,
+                    beforeSubmit: function(postData) {
+                        const allowedStatuses = ["in_progress", "closed", "abandoned", "in_attention"];
+                        if (!allowedStatuses.includes(postData.status)) {
+                            return [false, "Invalid status value"];
+                        }
+                        return [true, ""];
+                    },
+                    serializeEditData: function(postData) {
+                        return JSON.stringify(postData);
+                    },
+                    ajaxEditOptions: { contentType: "application/json" },
+                    afterSubmit: function(response) {
+                        return response.responseJSON.error ? [false, response.responseJSON.error] : [true, "", ""];
+                    }
+                },
+            );
+        });        
+
+
+    </script>
+{% endblock %}

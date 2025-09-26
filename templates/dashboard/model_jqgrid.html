@@ -1,0 +1,798 @@
+
+
+{% extends "/dashboard/base.html" %}
+
+{% block title %}Model{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+    <h1 class="text-center mb-4">Modelo GPScontrol</h1>
+     
+    <div class="mb-3">
+        <button id="downloadSelected" class="btn btn-primary">Reentrenar</button>
+    </div>
+
+    <table id="grid"></table>
+    <div id="pager"></div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/free-jqgrid/js/jquery.jqgrid.min.js"></script>
+
+ <script> 
+ $(document).ready(function () {
+     let selectedIds = [];
+     $("#grid").jqGrid({
+         url: "/data-model",
+         datatype: "json",
+         mtype: "GET",
+         colNames: ["ID", "Archivo", "Input", "Clasificación", "Intención", "Keywords", "Respuesta", "Llamado al Acción","Sugerencias"],
+         colModel: [
+             { 
+                 name: "id", 
+                 index: "id", 
+                 width: 50, 
+                 key: true, 
+                 sorttype: "int",
+                 search: true,
+                 hidden: false // Ocultar ID en la vista pero mantenerlo en el modelo
+             },
+             { 
+                 name: "file", 
+                 index: "file", 
+                 width: 30, 
+                 editable: true,
+                 search: true
+             },
+             { 
+                 name: "input", 
+                 index: "input", 
+                 width: 250, 
+                 editable: true,
+                 search: true
+             },
+             { 
+                 name: "clasification", 
+                 index: "clasification", 
+                 width: 80, 
+                 editable: true,
+                 search: true
+             },
+             { 
+                 name: "intention", 
+                 index: "intention", 
+                 width: 80, 
+                 editable: true,
+                 search: true
+             },
+             { 
+                 name: "keywords", 
+                 index: "keywords", 
+                 width: 80, 
+                 editable: true,
+                 search: true
+             },
+             { 
+                 name: "answer", 
+                 index: "answer", 
+                 width: 250, 
+                 editable: true,
+                 search: true
+             },
+             { 
+                 name: "call_to_action", 
+                 index: "call_to_action", 
+                 width: 150, 
+                 editable: true,
+                 search: true
+             },
+             { 
+                 name: "suggested_responses", 
+                 index: "suggested_responses", 
+                 width: 150, 
+                 editable: true,
+                 search: true
+             }
+         ],
+         pager: "#pager",
+         rowNum: 100,
+         rowList: [10, 20, 30],
+         sortname: "id",
+        rtorder: "desc",
+         sortorder: "asc",
+         viewrecords: true,
+         gridview: true,
+         autowidth: true,
+         caption: "Gestión de Datos del Chatbot",
+         multiselect: false, // Habilitar selección múltiple
+        ight: "auto",
+         height: 400,
+         width: 1200,
+        rinkToFit: true,
+        loadComplete: function () {
+             const ids = $("#grid").jqGrid('getDataIDs');
+             ids.forEach(id => {
+                 if (selectedIds.includes(id)) {
+                     $("#grid").jqGrid('setSelection', id, true);
+                 }
+         });
+         },
+         onSelectRow: function (id, isSelected) {
+            
+             if (isSelected) {
+                 if (!selectedIds.includes(id)) {
+                     selectedIds.push(id);
+                 }
+             } else {
+                selectedIds = selectedIds.filter(selectedId => selectedId !== id);
+             }
+        },
+        onSelectAll: function (ids, isSelected) {
+            
+             if (isSelected) {
+                 selectedIds = [...new Set([...selectedIds, ...ids])];
+             } else {
+                 selectedIds = selectedIds.filter(selectedId => !ids.includes(selectedId));
+             }
+         }
+     });    
+     $("#grid").jqGrid('filterToolbar', {
+         stringResult: true,
+         searchOnEnter: false, // No esperar a presionar Enter
+         defaultSearch: "cn",  // Búsqueda por defecto: contiene
+         beforeSearch: function () {          
+             setTimeout(function () {
+                 $("#grid").trigger("reloadGrid");
+             }, 0);
+             return false; // Evitar la búsqueda predeterminada
+         }
+     });
+ 
+/////---------------------------->
+
+    // Configuración de navegación
+    $("#grid").jqGrid('navGrid', '#pager', {
+            edit: false,
+            add: false,
+            del: true,
+            search: false,
+            refresh: true,
+            view: false,
+            position: "left",
+            cloneToTop: false
+        },
+        {
+            errorTextFormat: function(data) {
+                return "Error: " + (data.responseText || "Error desconocido");
+            }
+        }
+    ) 
+    .navButtonAdd('#pager', {
+        caption: "Editar",
+        buttonicon: "ui-icon-pencil",
+        onClickButton: function () {
+            const selectedRowId = $("#grid").jqGrid('getGridParam', 'selrow');
+            if (!selectedRowId) {
+                alert("Por favor, selecciona un registro para editar.");
+                return;
+            }
+            console.log("Registro seleccionado",selectedRowId);
+            openRecordModel(selectedRowId);
+        },
+        position: "last"
+    })
+    .navButtonAdd('#pager', {
+        caption: "Agregar",
+        buttonicon: "ui-icon-plus",
+        onClickButton: function () {
+            // Tu lógica aquí
+            openRecordModel();
+        },
+        position: "last",
+        title: "Agregar nuevo registro", // Opcional: aparece como tooltip al pasar el mouse
+        cursor: "pointer" // Opcional: cambia el cursor a tipo mano
+    })
+    .navButtonAdd('#pager', {
+        caption: "Agregar JSON",
+        buttonicon: "ui-icon-plus",
+        onClickButton: function () {
+            // Tu lógica aquí
+            openRecordsModelforJSON();
+        },
+        position: "last",
+        title: "Agregar nuevo registro", // Opcional: aparece como tooltip al pasar el mouse
+        cursor: "pointer" // Opcional: cambia el cursor a tipo mano
+    });    
+
+    // Botón personalizado para Reentrenar
+    $("#downloadSelected").click(function() {        
+        if (confirm(`¿Está seguro de reentrenar con los registros actuales?`)) {
+            fetch("/save-retrained-model", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; });
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert("Modelo reentrenado exitosamente");
+                document.getElementById("grid").dispatchEvent(new Event("reloadGrid"));
+            })
+            .catch(error => {
+                alert("Error al reentrenar: " + (error.message || "Error desconocido"));
+                console.error("Error detallado:", error);
+            });            
+        }
+    });
+
+    // Ajustar tamaño del grid cuando cambia el tamaño de la ventana
+    $(window).resize(function() {
+        $("#grid").jqGrid('setGridWidth', $(".container").width());
+    });
+});
+
+function openRecordsModelforJSON() {
+    const dialog = $("<div></div>");
+
+    dialog.html(`
+        <div class="form-container">
+            <label>Selecciona un archivo JSON (.json):</label>
+            <input type="file" id="file_upload_input" accept=".xlsx" required>
+        </div>
+    `);
+
+    dialog.dialog({
+        title: "Subir Archivo Excel",
+        width: 400,
+        modal: true,
+        buttons: [
+            {
+                text: "Subir",
+                class: "save-btn",
+                click: function () {
+                    const fileInput = $("#file_upload_input")[0];
+                    const file = fileInput.files[0];
+
+                    if (!file || !file.name.endsWith(".xlsx")) {
+                        alert("Por favor selecciona un archivo .xlsx válido.");
+                        return;
+                    }
+
+                    const formData = new FormData();
+                    formData.append("file", file);
+
+                    fetch('/save_record_model', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert("Archivo subido y procesado correctamente.");
+                            $("#grid").trigger("reloadGrid");
+                            dialog.dialog("close");
+                        } else {
+                            alert("Error al procesar el archivo: " + (data.message || ""));
+                        }
+                    })
+                    .catch(err => {
+                        alert("Error en la solicitud: " + err.message);
+                    });
+                }
+            },
+            {
+                text: "Cancelar",
+                class: "cancel-btn",
+                click: function () {
+                    dialog.dialog("close");
+                }
+            }
+        ],
+        close: function () {
+            dialog.remove();
+        }
+    });
+}
+
+
+function openRecordModel(id) {
+    const dialog = $("<div></div>");
+
+    // Agregamos estilos directamente en el HTML
+    dialog.html(`
+        <div class="form-container">
+            <label>Archivo:</label>
+            <input type="text" id="file_migrate_form" onclick=openFileGrid()>
+            <input type="text" id="file_migrate_form_id" hidden>
+            <label>Entrada:</label>
+            <textarea id="input" minlength="10" maxlength="250"></textarea>
+
+            <label>Clasificación:</label>
+            <input type="text" id="clasification" onclick=openClassGrid() >
+            <input type="text" id="clasification_id" hidden>
+
+            <label>Intención:</label>
+            <input type="text" id="intention" onclick=openIntentionGrid()>
+            <input type="text" id="intention_id" hidden>
+
+            <label>Palabras Clave (Divididos por ","):</label>
+            <textarea id="keywords"></textarea>
+
+            <label>Respuesta:</label>
+            <textarea id="answer" minlength="10" maxlength="250"></textarea>
+
+            <label>Llamada a Acción (¿Te gustaría que...?):</label>
+            <input type="text" id="call_to_action">
+
+            <label>Respuestas Sugeridas (Divididos por ","):</label>
+            <textarea id="suggested_responses"></textarea>
+        </div>
+    `);
+
+    // Creamos el diálogo con los nuevos estilos
+    dialog.dialog({
+        title: id ? "Editar Registro" : "Agregar Registro",
+        width: 600,
+        modal: true,
+        buttons: [
+            {
+                text: "Guardar",
+                class: "save-btn",
+                click: function () {
+                    const formData = {
+                        id: id,
+                        file: $("#file_migrate_form_id").val(),
+                        input: $("#input").val(),
+                        clasification: $("#clasification").val(),
+                        intention: $("#intention").val(),
+                        keywords: $("#keywords").val(),
+                        answer: $("#answer").val(),
+                        call_to_action: $("#call_to_action").val(),
+                        suggested_responses: $("#suggested_responses").val()
+                    };
+
+                    fetch('/save_record_model', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert("Registro guardado exitosamente.");
+                            $("#grid").trigger("reloadGrid");
+                            dialog.dialog("close");
+                        } else {
+                            alert("Error al guardar el registro");
+                        }
+                    });
+                }
+            },
+            {
+                text: "Cancelar",
+                class: "cancel-btn",
+                click: function () {
+                    dialog.dialog("close");
+                }
+            }
+        ],
+        open: function () {
+            $("#file_migrate_form_id").val("");
+            $("#input").val("");
+            $("#clasification").val("");
+            $("#intention").val("");
+            $("#keywords").val("");
+            $("#answer").val("");
+            $("#call_to_action").val("");
+            $("#suggested_responses").val("");
+
+            if (id) {
+                fetch(`/get_models_record/${id}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const record = data.record;
+                        $("#file_migrate_form_id").val(record.file);
+                        $("#file_migrate_form").val(record.file_name);
+                        $("#input").val(record.input);
+                        $("#clasification").val(record.clasification);
+                        $("#intention").val(record.intention);
+                        $("#keywords").val(record.keywords);
+                        $("#answer").val(record.answer);
+                        $("#call_to_action").val(record.call_to_action);
+                        $("#suggested_responses").val(record.suggested_responses);
+                    });
+            }
+        },
+        close: function () {
+            dialog.remove();
+        }
+    });
+}
+
+///---------------------> Files
+
+function addFile(gridId, targetInputId) {
+           var rowId = $("#" + gridId).jqGrid('getGridParam', 'selrow');
+           if (!rowId) {
+               $.alert("Selecciona una fila", { autoClose: true, type: "warning" });
+               return;
+           }
+       
+           var rowData = $("#" + gridId).getRowData(rowId);
+           var fileName = rowData['file_name'];  // o 'title' si prefieres usar el título
+           var fileId = rowData['id'];
+       
+           // Asignar valores a inputs (ajusta los IDs reales)
+           document.getElementById("file_migrate_form").value = fileName;
+           document.getElementById("file_migrate_form_id").value = fileId;
+        }
+
+
+        function openFileGrid(user, key) {
+           const winHeight = 500;
+           const winWidth = 810;
+           const gridId = 'jgGridModelFiles';
+           const pagerId = 'jqGridPagerModelFiles';
+           const $gridId = `#${gridId}`;
+           const $pagerId = `#${pagerId}`;
+
+           // Limpieza previa
+           $($gridId).length && $($gridId).remove();
+           $($pagerId).length && $($pagerId).remove();
+           $("#ModelFilesForm").length && $("#ModelFilesForm").remove();
+
+           // Crear nuevo div y HTML
+           const newDiv = $("<div class='model-files-container'></div>");
+           const html = `
+               <div id="ModelFilesForm" title="Doble click para seleccionar">
+                   <table id="${gridId}"></table>
+                   <div id="${pagerId}"></div>
+               </div>
+           `;
+           newDiv.html(html);
+           
+           // Crear el diálogo
+           const dialog = newDiv.dialog({
+               autoOpen: false,
+               title: "Doble click para seleccionar",
+               height: winHeight,
+               width: winWidth,
+               modal: true,
+               buttons: {
+                    "Agregar": function () {
+                        addFile('jgGridModelFiles', "selectuser");
+                        $('#ModelFilesForm').html("");
+                        dialog.dialog("close");
+                    },
+                    "Cerrar": function () {
+                        $('#ModelFilesForm').html("");
+                        dialog.dialog("close");
+                    }
+                },
+                close: function () {
+                    $('#ModelFilesForm').html("");
+                }               
+           });
+       
+           // Listener de redimensionamiento con namespace
+           $(window).off("resize.jqgridfiles").on("resize.jqgridfiles", function () {
+               const $grid = $($gridId);
+               const newWidth = $grid.closest(".ui-jqgrid").parent().width();
+               $grid.jqGrid("setGridWidth", newWidth, true);
+           });
+       
+           // Inicializar jqGrid
+           const grid = $($gridId);
+           grid.jqGrid({
+               url: '/get_short_files',
+               mtype: "GET",
+               datatype: "json",
+               page: 1,
+               colModel: [
+                   { label: 'ID', name: 'id', width: 50, key: true },
+                   { label: 'Título', name: 'title_name', width: 100 },
+                   { label: 'Archivo', name: 'file_name', width: 150 },
+                   { label: 'Descripción', name: 'description', width: 150 },
+                   { label: 'Clasificación', name: 'clasification', width: 150, edittype: 'select', editoptions: { value: "internal:Interno;external:Externo" } },
+                   { label: 'Fecha de Creación', name: 'created_at', width: 150, formatter: 'date', formatoptions: { srcformat: 'Y-m-d H:i:s', newformat: 'd/m/Y H:i' } }
+               ],
+               loadonce: true,
+               viewrecords: true,
+               width: 780,
+               height: 250,
+               rowNum: 100,
+               rowList: [100, 500, 1000],
+               multiselect: false,
+               pager: $pagerId,
+               ondblClickRow: function (rowid) {
+                    const grid = $("#jgGridModelFiles");
+                    const rowData = grid.getRowData(rowid);
+
+                    // Asigna directamente los valores
+                    document.getElementById("file_migrate_form").value = rowData['file_name']; // o 'file_name'
+                    document.getElementById("file_migrate_form_id").value = rowData['id'];
+
+                    $('#ModelFilesForm').html("");
+                    dialog.dialog("close");
+                }                          
+           });
+       
+           // Toolbar y navGrid
+           grid.jqGrid('navGrid', $pagerId, {
+               search: true,
+               add: false,
+               edit: false,
+               del: false,
+               refresh: true
+           });
+           grid.jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false });
+       
+           // Evento doble clic para seleccionar archivo
+           grid.on("dblclickRow", function (rowid) {
+               const rowData = grid.jqGrid("getRowData", rowid);
+               console.log("Archivo seleccionado:", rowData);
+               // Puedes insertar el archivo en un campo o input aquí
+               dialog.dialog("close");
+           });
+       
+           // Abrir el diálogo
+           dialog.dialog("open");
+    }       
+
+
+///------------------> Class
+
+    function addClass(gridId, targetInputId) {
+           var rowId = $("#" + gridId).jqGrid('getGridParam', 'selrow');
+           if (!rowId) {
+               $.alert("Selecciona una fila", { autoClose: true, type: "warning" });
+               return;
+           }
+       
+           var rowData = $("#" + gridId).getRowData(rowId);
+           var fileName = rowData['clasification'];  // o 'title' si prefieres usar el título
+           var fileId = rowData['id'];
+       
+           // Asignar valores a inputs (ajusta los IDs reales)
+           document.getElementById("clasification").value = fileName;
+           document.getElementById("class_id").value = fileId;
+        }
+
+        function openClassGrid(user, key) {
+           const winHeight = 500;
+           const winWidth = 810;
+           const gridId = 'jgGridClass';
+           const pagerId = 'jqGridPagerClass';
+           const $gridId = `#${gridId}`;
+           const $pagerId = `#${pagerId}`;
+           // Limpieza previa
+           $($gridId).length && $($gridId).remove();
+           $($pagerId).length && $($pagerId).remove();
+           $("#ClassForm").length && $("#ClassForm").remove();
+           // Crear nuevo div y HTML
+           const newDiv = $("<div class='class-container'></div>");
+           const html = `
+               <div id="ClassForm" title="Doble click para seleccionar">
+                   <table id="${gridId}"></table>
+                   <div id="${pagerId}"></div>
+               </div>
+           `;
+           newDiv.html(html);
+           
+           // Crear el diálogo
+           const dialog = newDiv.dialog({
+               autoOpen: false,
+               title: "Doble click para seleccionar",
+               height: winHeight,
+               width: winWidth,
+               modal: true,
+               buttons: {
+                    "Agregar": function () {
+                        addClass('jgGridClass', "selectuser");
+                        $('#ClassForm').html("");
+                        dialog.dialog("close");
+                    },
+                    "Cerrar": function () {
+                        $('#ClassForm').html("");
+                        dialog.dialog("close");
+                    }
+                },
+                close: function () {
+                    $('#ClassForm').html("");
+                }               
+           });
+       
+           // Listener de redimensionamiento con namespace
+           $(window).off("resize.jqgridclass").on("resize.jqgridclass", function () {
+               const $grid = $($gridId);
+               const newWidth = $grid.closest(".ui-jqgrid").parent().width();
+               $grid.jqGrid("setGridWidth", newWidth, true);
+           });
+       
+
+           // Inicializar jqGrid
+           const grid = $($gridId);
+           grid.jqGrid({
+               url: '/get_short_classifications',
+               mtype: "GET",
+               datatype: "json",
+               page: 1,
+               colModel: [
+                    { label: 'ID', name: 'id', width: 50, key: true, searchoptions: { sopt: ['cn'] } },
+                    { label: 'Clasificación', name: 'clasification', width: 100, searchoptions: { sopt: ['cn'] } },
+                    { label: 'Descripcion', name: 'description', width: 150, searchoptions: { sopt: ['cn'] } },
+                    { label: 'Fecha de Creación', name: 'created_at', width: 150, formatter: 'date', formatoptions: { srcformat: 'Y-m-d H:i:s', newformat: 'd/m/Y H:i' }, searchoptions: { sopt: ['eq'] } }                
+               ],
+               loadonce: true,
+               viewrecords: true,
+               width: 780,
+               height: 250,
+               rowNum: 100,
+               rowList: [100, 500, 1000],
+               multiselect: false,
+               pager: $pagerId,
+               ondblClickRow: function (rowid) {
+                    const grid = $("#jgGridClass");
+                    const rowData = grid.getRowData(rowid);
+                    // Asigna directamente los valores
+                    document.getElementById("clasification").value = rowData['clasification']; // o 'file_name'
+                    document.getElementById("clasification_id").value = rowData['id'];
+                    $('#ModelFilesForm').html("");
+                    dialog.dialog("close");
+                }                          
+           });
+       
+           // Toolbar y navGrid
+           grid.jqGrid('navGrid', $pagerId, {
+               search: true,
+               add: false,
+               edit: false,
+               del: false,
+               refresh: true
+           });
+           grid.jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false });
+       
+           // Evento doble clic para seleccionar archivo
+           grid.on("dblclickRow", function (rowid) {
+               const rowData = grid.jqGrid("getRowData", rowid);
+               console.log("Archivo seleccionado:", rowData);
+               // Puedes insertar el archivo en un campo o input aquí
+               dialog.dialog("close");
+           });
+       
+           // Abrir el diálogo
+           dialog.dialog("open");
+}       
+
+/// -----------------> Intentions
+
+function addIntention(gridId, targetInputId) {
+           var rowId = $("#" + gridId).jqGrid('getGridParam', 'selrow');
+           if (!rowId) {
+               $.alert("Selecciona una fila", { autoClose: true, type: "warning" });
+               return;
+           }
+       
+           var rowData = $("#" + gridId).getRowData(rowId);
+           var fileName = rowData['intention'];  // o 'title' si prefieres usar el título
+           var fileId = rowData['id'];
+       
+           // Asignar valores a inputs (ajusta los IDs reales)
+           document.getElementById("intention").value = fileName;
+           document.getElementById("intention_id").value = fileId;
+        }
+
+        function openIntentionGrid(user, key) {
+           const winHeight = 500;
+           const winWidth = 810;
+           const gridId = 'jgGridIntention';
+           const pagerId = 'jqGridPagerIntention';
+           const $gridId = `#${gridId}`;
+           const $pagerId = `#${pagerId}`;
+           // Limpieza previa
+           $($gridId).length && $($gridId).remove();
+           $($pagerId).length && $($pagerId).remove();
+           $("#IntentionForm").length && $("#IntentionForm").remove();
+           // Crear nuevo div y HTML
+           const newDiv = $("<div class='intention-container'></div>");
+           const html = `
+               <div id="IntentionForm" title="Doble click para seleccionar">
+                   <table id="${gridId}"></table>
+                   <div id="${pagerId}"></div>
+               </div>
+           `;
+           newDiv.html(html);
+           
+           // Crear el diálogo
+           const dialog = newDiv.dialog({
+               autoOpen: false,
+               title: "Doble click para seleccionar",
+               height: winHeight,
+               width: winWidth,
+               modal: true,
+               buttons: {
+                    "Agregar": function () {
+                        addIntention('jgGridIntention', "selectuser");
+                        $('#IntentionForm').html("");
+                        dialog.dialog("close");
+                    },
+                    "Cerrar": function () {
+                        $('#IntentionForm').html("");
+                        dialog.dialog("close");
+                    }
+                },
+                close: function () {
+                    $('#IntentionForm').html("");
+                }               
+           });
+       
+           // Listener de redimensionamiento con namespace
+           $(window).off("resize.jqgridintention").on("resize.jqgridintention", function () {
+               const $grid = $($gridId);
+               const newWidth = $grid.closest(".ui-jqgrid").parent().width();
+               $grid.jqGrid("setGridWidth", newWidth, true);
+           });
+       
+           // Inicializar jqGrid
+           const grid = $($gridId);
+           grid.jqGrid({
+               url: '/get_short_intentions',
+               mtype: "GET",
+               datatype: "json",
+               page: 1,
+               colModel: [
+                    { label: 'ID', name: 'id', width: 50, key: true, editable: false },
+                    { label: 'Intención', name: 'intention', width: 100, editable: true },
+                    { label: 'Descripción', name: 'descrition', width: 150, editable: true },
+                    { label: 'Clasificación', name: 'clasification', width: 150, editable: true, edittype: 'select', editoptions: { value: "internal:Interno;external:Externo" } },
+                    { label: 'Fecha de Creación', name: 'created_at', width: 150, formatter: 'date', formatoptions: { srcformat: 'Y-m-d H:i:s', newformat: 'd/m/Y H:i' }, editable: false }                
+               ],
+               loadonce: true,
+               viewrecords: true,
+               width: 780,
+               height: 250,
+               rowNum: 100,
+               rowList: [100, 500, 1000],
+               multiselect: false,
+               pager: $pagerId,
+               ondblClickRow: function (rowid) {
+                    const grid = $("#jgGridIntention");
+                    const rowData = grid.getRowData(rowid);
+                    // Asigna directamente los valores
+                    document.getElementById("intention").value = rowData['intention']; // o 'file_name'
+                    document.getElementById("intention_id").value = rowData['id'];
+                    $('#IntentionForm').html("");
+                    dialog.dialog("close");
+                }                          
+           });
+       
+           // Toolbar y navGrid
+           grid.jqGrid('navGrid', $pagerId, {
+               search: true,
+               add: false,
+               edit: false,
+               del: false,
+               refresh: true
+           });
+           grid.jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false });
+       
+           // Evento doble clic para seleccionar archivo
+           grid.on("dblclickRow", function (rowid) {
+               const rowData = grid.jqGrid("getRowData", rowid);
+               console.log("Archivo seleccionado:", rowData);
+               // Puedes insertar el archivo en un campo o input aquí
+               dialog.dialog("close");
+           });
+       
+           // Abrir el diálogo
+           dialog.dialog("open");
+}       
+
+</script> 
+
+{% endblock %}

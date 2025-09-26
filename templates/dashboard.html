@@ -1,0 +1,502 @@
+    
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Dashboard de Vendedores</title>
+        <style>
+            /* Estilos generales */
+            body {
+                font-family: 'Poppins', sans-serif;
+                background: linear-gradient(135deg, #f8fafc, #e9edf2);
+                margin: 0;
+                padding: 0;
+                overflow-x: hidden;
+            }
+            .navbar {
+                background: linear-gradient(135deg, #1e599b, #123d6a);
+                color: white;
+                padding: 15px 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            .navbar-brand {
+                font-size: 18px;
+                font-weight: 600;
+                color: white;
+            }
+            .navbar button {
+                background: none;
+                border: 2px solid white;
+                color: white;
+                padding: 8px 15px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 14px;
+                transition: all 0.3s ease;
+            }
+            .navbar button:hover {
+                background: white;
+                color: #1e599b;
+            }
+            .container {
+                margin-top: 20px;
+                display: flex;
+                gap: 20px; /* Espacio entre las secciones */
+            }
+            .card {
+                background: white;
+                border: none;
+                border-radius: 15px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                flex: 1; /* Cada tarjeta ocupa un tercio del ancho */
+                overflow: hidden;
+            }
+            .card-header {
+                font-size: 16px;
+                font-weight: 600;
+                padding: 15px;
+                border-radius: 15px 15px 0 0;
+            }
+            .card-body {
+                padding: 20px;
+            }
+            .card-header.bg-success {
+                background: linear-gradient(135deg, #38a169, #276749);
+                color: white;
+            }
+            .card-header.bg-warning {
+                background: linear-gradient(135deg, #ecc94b, #d69e2e);
+                color: white;
+            }
+            .card-header.bg-secondary {
+                background: linear-gradient(135deg, #718096, #4a5568);
+                color: white;
+            }
+            .chat-card {
+                background: white;
+                border: 1px solid #e2e8f0;
+                border-radius: 10px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                margin-bottom: 15px;
+                transition: all 0.3s ease;
+            }
+            .chat-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+            }
+            .chat-card .card-title {
+                font-size: 16px;
+                color: #1e599b;
+                margin-bottom: 10px;
+            }
+            .chat-card .card-text {
+                font-size: 14px;
+                color: #555;
+                margin-bottom: 15px;
+            }
+            .chat-card .btn {
+                background: #1e599b;
+                color: white;
+                border: none;
+                padding: 8px 15px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 14px;
+                transition: all 0.3s ease;
+            }
+            .chat-card .btn:hover {
+                background: #123d6a;
+                transform: translateY(-1px);
+            }
+            .stats-section {
+                margin-top: 20px;
+                display: none; /* Oculto por defecto */
+            }
+            .stats-card {
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                padding: 20px;
+            }
+            .stats-card h4 {
+                color: #1e599b;
+                font-weight: 600;
+                margin-bottom: 15px;
+            }
+            .stats-card p {
+                font-size: 14px;
+                color: #555;
+                margin: 5px 0;
+            }
+            @media (max-width: 768px) {
+                .container {
+                    flex-direction: column;
+                }
+                .card {
+                    margin-bottom: 20px;
+                }
+            }
+        </style>
+
+        <!-- Agregamos Font Awesome para los íconos -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+        <script src="https://cdn.socket.io/4.1.2/socket.io.min.js"></script>
+        <link rel="icon" href="{{ url_for('static', filename='/machín/el_machin.png') }}" type="image/png">
+    </head>
+    <body>
+        <nav class="navbar">
+            <span class="navbar-brand">Dashboard - Bienvenido, <strong>{{ vendedor }}</strong></span>
+            <div>
+                <button class="btn" onclick="users_list()">Users Chats</button>
+                <button class="btn" onclick="conversations()">Conversaciones</button>
+                <button class="btn" onclick="quotes_all()">Cotizaciones</button>
+                <button class="btn" onclick="models_data()">Modelo</button>
+                <button class="btn" onclick="vendedores()">Vendedores</button>
+                <button class="btn btn-danger" onclick="cerrarSesion()">Cerrar Sesión</button>
+            </div>
+        </nav>
+        <div class="container mt-4">
+            <!-- Vendedores Conectados -->
+            <div class="card">
+                <div class="card-header bg-success text-white">Vendedores Conectados</div>
+                <div class="card-body">
+                    <ul class="list-group" id="vendors-online">
+                        <!-- Ejemplo de lista dinámica -->
+                        <!-- <li class="list-group-item">Vendedor 1</li> -->
+                        <!-- <li class="list-group-item">Vendedor 2</li> -->
+                        <!-- <li class="list-group-item">Vendedor 3</li> -->
+                    </ul>
+                </div>
+            </div>
+    
+            <!-- Chats Activos -->
+            <div class="card">
+                <div class="card-header bg-warning text-dark">Chats Activos</div>
+                <div class="card-body">
+                    <div id="chats" class="row gy-3">
+                        
+                        <!-- <div class="col-md-12"> -->
+                            <!-- <div class="chat-card shadow"> -->
+                                <!-- <div class="card-body"> -->
+                                    <!-- <h5 class="card-title">Chat ID: XyZ123_abcdEF456789</h5> -->
+                                    <!-- <p class="card-text"> -->
+                                        <!-- <strong>Usuarios:</strong> Cliente 2 <br> -->
+                                        <!-- <strong>Vendedores:</strong> Vendedor 2 -->
+                                    <!-- </p> -->
+                                    <!-- <button class="btn" onclick="takeChat('XyZ123_abcdEF456789','2')">Atender Chat</button> -->
+                                <!-- </div> -->
+                            <!-- </div> -->
+                        <!-- </div> -->
+                        <!-- <div class="col-md-12"> -->
+                            <!-- <div class="chat-card shadow"> -->
+                                <!-- <div class="card-body"> -->
+                                    <!-- <h5 class="card-title">Chat ID: LMNopqRSTuvwXYZ987654</h5> -->
+                                    <!-- <p class="card-text"> -->
+                                        <!-- <strong>Usuarios:</strong> Cliente 3 <br> -->
+                                        <!-- <strong>Vendedores:</strong> Ninguno -->
+                                    <!-- </p> -->
+                                    <!-- <button class="btn" onclick="takeChat('LMNopqRSTuvwXYZ987654','3')">Atender Chat</button> -->
+                                <!-- </div> -->
+                            <!-- </div> -->
+                        <!-- </div> -->
+
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Historial de Chats -->
+            <div class="card">
+                <div class="card-header bg-secondary text-white">Historial de Chats</div>
+                <div class="card-body">
+                    <ul class="list-group" id="chat-history">
+
+                        <!-- Ejemplo de historial de chats -->
+                        <!-- <li class="list-group-item">Chat con Cliente 1</li> -->
+                        <!-- <li class="list-group-item">Chat con Cliente 2</li> -->
+                        <!-- <li class="list-group-item">Chat con Cliente 3</li> -->
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+    
+        <!-- Sección de Estadísticas -->
+        <div class="stats-section">
+            <div class="stats-card">
+                <h4>Estadísticas de <span id="cliente-seleccionado"></span></h4>
+                <p>Tiempo en el sistema: <strong id="tiempo-sistema"></strong></p>
+                <p>Videos vistos: <strong id="videos-vistos"></strong></p>
+                <p>Porcentaje de videos vistos: <strong id="porcentaje-videos"></strong></p>
+                <p>Adelantó videos: <strong id="adelanto-videos"></strong></p>
+                <p>Pausó videos: <strong id="pauso-videos"></strong></p>
+                <p>Regresó a segundos específicos: <strong id="regreso-videos"></strong></p>
+            </div>
+        </div>
+        <audio id="alertaAudio" src="{{ url_for('static', filename='/sounds/ringtone-machin.mp3') }}" preload="auto"></audio>
+        <script>
+
+
+            // Simulación de datos de estadísticas
+            const datosClientes = {
+                "Cliente 1": {
+                    tiempoSistema: "2 horas 15 minutos",
+                    videosVistos: "5 videos",
+                    porcentajeVideos: "80%",
+                    adelantoVideos: "Sí",
+                    pausoVideos: "Sí",
+                    regresoVideos: "No"
+                },
+                "Cliente 2": {
+                    tiempoSistema: "1 hora 45 minutos",
+                    videosVistos: "3 videos",
+                    porcentajeVideos: "60%",
+                    adelantoVideos: "No",
+                    pausoVideos: "Sí",
+                    regresoVideos: "Sí"
+                },
+                "Cliente 3": {
+                    tiempoSistema: "3 horas 10 minutos",
+                    videosVistos: "7 videos",
+                    porcentajeVideos: "90%",
+                    adelantoVideos: "Sí",
+                    pausoVideos: "No",
+                    regresoVideos: "No"
+                }
+            };
+    
+            // Manejo de clic en los clientes
+            document.querySelectorAll('.chat-card').forEach(item => {
+                item.addEventListener('click', () => {
+                    const cliente = item.querySelector('.card-title').textContent.split(': ')[1];
+                    const statsSection = document.querySelector('.stats-section');
+                    const clienteSeleccionado = document.getElementById('cliente-seleccionado');
+                    const tiempoSistema = document.getElementById('tiempo-sistema');
+                    const videosVistos = document.getElementById('videos-vistos');
+                    const porcentajeVideos = document.getElementById('porcentaje-videos');
+                    const adelantoVideos = document.getElementById('adelanto-videos');
+                    const pausoVideos = document.getElementById('pauso-videos');
+                    const regresoVideos = document.getElementById('regreso-videos');
+    
+                    // Actualizar datos de estadísticas
+                    if (datosClientes[cliente]) {
+                        clienteSeleccionado.textContent = cliente;
+                        tiempoSistema.textContent = datosClientes[cliente].tiempoSistema;
+                        videosVistos.textContent = datosClientes[cliente].videosVistos;
+                        porcentajeVideos.textContent = datosClientes[cliente].porcentajeVideos;
+                        adelantoVideos.textContent = datosClientes[cliente].adelantoVideos;
+                        pausoVideos.textContent = datosClientes[cliente].pausoVideos;
+                        regresoVideos.textContent = datosClientes[cliente].regresoVideos;
+    
+                        // Mostrar la sección de estadísticas
+                        statsSection.style.display = 'block';
+                    }
+                });
+            });
+
+        const vendorName = "{{ vendedor }}";
+        // const socket = io();
+
+
+        // const socket = io({
+        // transports: ['websocket', 'polling'],
+        // upgrade: true
+        // });
+        
+
+        // const socket = io('https://elmachin.custodiayvigilancia.mx',{
+        //   transports: ['websocket', 'polling'],
+        //   path: "/socket.io/",
+        //   withCredentials: true,
+        //   forceNew: true
+        // });
+
+        const socket = io({
+            transports: ['websocket', 'polling'],
+            // upgrade: true
+        });
+        
+
+        let seller_id;
+        
+        socket.on('connect', () => {
+            console.log("Vendedor acaba de entrar a Dashboard Socket:", socket.id);
+            seller_id = socket.id;
+            // socket.emit('seller_dashboaard', { seller_id: seller_id });
+            socket.emit('join_dasboard', { name: vendorName,seller_id: seller_id });
+        });
+        
+        socket.on('connected', (data) => {
+            console.log("El servidor confirmó conexión ", data);
+        });
+
+        socket.on('disconnect', (reason) => {
+          console.log(`Desconectado: ${reason}`);
+          if (reason === 'transport close') {
+            console.log('Se cerró la ventana o se perdió la conexión.');
+            // disconnect_dashboard
+          } else if (reason === 'ping timeout') {
+            console.log('Se desconectó por inactividad.');
+          }
+          socket.emit('out_dasboard', { name: vendorName,seller_id: seller_id });
+        });        
+
+
+        // Actualizar lista de vendedores conectados
+        socket.on('update_sellers', (vendors) => {
+            console.log("update sellers:", vendors);
+            const vendorsOnline = document.getElementById('vendors-online');
+                
+            // Limpiar lista actual
+            vendorsOnline.innerHTML = '';
+                
+            // Agregar cada vendedor a la lista
+            for (const [id, vendor] of Object.entries(vendors)) {
+                const li = document.createElement('li');
+                li.className = 'col-md-12';
+                li.innerHTML = `
+                        <div class="card shadow">
+                            <div class="card-body">
+                                <h5 class="card-title">Vendedor: ${vendor.name}</h5>
+                            </div>
+                        </div>
+                    `;
+
+                //li.className = 'list-group-item'; // para estilo de Bootstrap
+                //li.textContent = vendor.name;
+                vendorsOnline.appendChild(li);
+            }
+        });        
+        
+        socket.on('redirect_to_chat', (data) => {
+            // window.location.href = data.url;
+            window.open(data.url, '_blank');
+        });
+
+    socket.on('update_chats', (chats) => {
+        console.log("update_chats", chats)
+        const chatsContainer = document.getElementById('chats');
+        chatsContainer.innerHTML = '';
+        Object.entries(chats).forEach(([chatId, chat]) => {
+            if (chat.status === 'waiting') {  // Mostrar solo chats pendientes
+                console.log("${chatData.user}","${chatId}")
+            }
+        });
+        
+        for (const [chatId, chat] of Object.entries(chats)) {
+            const chatCard = document.createElement('div');
+            chatCard.className = 'col-md-12';
+            chatCard.innerHTML = `
+                <div class="card shadow">
+                    <div class="card-body">
+                        <h5 class="card-title">Chat ID: ${chatId}</h5>
+                        <p class="card-text">
+                            <strong>Area:</strong> ${chat.area} <br>
+                            <strong>Usuario:</strong> ${chat.name} <br>
+                            <strong>Telefono:</strong> ${chat.phone} <br>
+                            <strong>Vendedores:</strong> ${chat.vendedor || 'Ninguno'} <br>
+                            <strong>Hora de Entrada:</strong> ${chat.arrival_time || 'Sin Registro'} 
+                        </p>
+                        <button class="btn btn-primary" ${chat.status === 'attended' ? 'disabled' : ''} onclick="takeChat('${chatId}','${chat.chat_id}')">
+                            ${chat.status === 'attended' ? 'En Atención' : 'Atender Chat'}
+                        </button>
+                    </div>
+                </div>
+            `;
+            chatsContainer.appendChild(chatCard);
+        }
+    });
+
+    socket.on('update_chats_history', (chats) => {
+        console.log("update_chats_history", chats)
+        const chatsContainer = document.getElementById('chat-history');
+        chatsContainer.innerHTML = '';
+        Object.entries(chats).forEach(([chatId, chat]) => {
+            if (chat.status === 'waiting') {  // Mostrar solo chats pendientes
+                console.log("${chatData.user}","${chatId}")
+            }
+        });
+        
+        for (const [chatId, chat] of Object.entries(chats)) {
+            const chatCard = document.createElement('div');
+            chatCard.className = 'col-md-12';
+            chatCard.innerHTML = `
+                <div class="card shadow">
+                    <div class="card-body">
+                        <h5 class="card-title">Chat ID: ${chatId}</h5>
+                        <p class="card-text">
+                            <strong>Usuario:</strong> ${chat.name} <br>
+                            <strong>Telefono:</strong> ${chat.phone} <br>
+                            <strong>Vendedores:</strong> ${chat.vendedor || 'Ninguno'} <br>
+                            <strong>Hora de Entrada:</strong> ${chat.arrival_time || 'Sin Registro'} <br>
+                            <strong>Hora de Atención:</strong> ${chat.attended_time || 'Sin Registro'} 
+                        </p>
+                        <button class="btn btn-primary" ${chat.status === 'attended' ? 'disabled' : ''} onclick="takeChat('${chatId}','${chat.chat_id}')">
+                            ${chat.status === 'atendido' ? 'Atendido' : 'Atender Chat'}
+                        </button>
+                    </div>
+                </div>
+            `;
+            chatsContainer.appendChild(chatCard);
+        }
+    });
+
+    socket.on('sound_to_event', (data) => {
+            console.log("Evento recibido:", data);
+            const audio = document.getElementById("alertaAudio");
+            audio.play().catch(err => console.error("Error al reproducir sonido:", err));
+    });                
+
+///-------------------------------------------------------------------->>
+        // Función para tomar un chat
+        function takeChat(sessionId,chatId) {
+            console.log("salade unnion:",chatId);
+            socket.emit('take_chat', { session_id: sessionId, chat_id: chatId});
+        }
+
+        function agregarVendedor() {
+            let nombre = prompt("Ingrese el nombre del nuevo vendedor:");
+            if (nombre) {
+                let list = document.getElementById("vendor-list");
+                let li = document.createElement("li");
+                li.className = "list-group-item";
+                li.textContent = nombre;
+                list.appendChild(li);
+            }
+        }
+
+        function cerrarSesion() {
+            alert("Sesión cerrada");
+            window.location.href = "/logout";
+        }
+
+        function vendedores() {
+            console.log("vendedores");
+            window.location.href = "/sellerson";
+        }
+
+        function quotes_all() {
+            console.log("Cotizaciones");
+            window.location.href = "/quotes_grid";
+        }
+
+        function models_data() {
+            console.log("modelo");
+            window.location.href = "/model_grid";
+        }
+
+        function conversations() {
+            console.log("modelo");
+            window.location.href = "/conversation_grid";
+        }
+
+        function users_list() {
+            console.log("modelo");
+            window.location.href = "/users_grid";
+        }
+</script>
+</body>
+</html>

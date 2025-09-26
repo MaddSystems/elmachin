@@ -26,6 +26,10 @@ __pycache__/
 .env.local
 .env.production
 
+# Supervisor configuration files (contain sensitive data)
+*.conf
+elmachin*.conf
+
 # Trash
 .backup
 

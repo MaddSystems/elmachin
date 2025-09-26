@@ -1,0 +1,59 @@
+{% extends "/dashboard/base.html" %}
+{% block title %}Model{% endblock %}
+
+{% block content %}
+
+
+<body class="bg-light">
+    <div class="container py-4">
+        <h1 class="text-center mb-4">Conversaciones</h1>
+        <table id="grid"></table>
+        <div id="pager"></div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/free-jqgrid/js/jquery.jqgrid.min.js"></script>
+
+
+    <script>
+        $(document).ready(function () {
+            $("#grid").jqGrid({
+                url: '/get_conversations', // Ruta para obtener los datos
+                datatype: "json",
+                colModel: [
+                    { label: 'ID', name: 'id', width: 50, key: true, searchoptions: { sopt: ['eq'] } },
+                    { label: 'Reporte de Chat', name: 'chat_report_id', width: 100, searchoptions: { sopt: ['eq'] } },
+                    { label: 'Remitente', name: 'sender', width: 100, searchoptions: { sopt: ['cn'] } },
+                    { label: 'Mensaje', name: 'message', width: 200, searchoptions: { sopt: ['cn'] } },
+                    { label: 'Respuesta', name: 'answer', width: 200, searchoptions: { sopt: ['cn'] } },
+                    { label: 'Intención', name: 'intent', width: 150, searchoptions: { sopt: ['cn'] } },
+                    { label: 'Clasificación', name: 'classification', width: 150, searchoptions: { sopt: ['cn'] } },
+                    { label: 'Etiquetas', name: 'tags', width: 150, searchoptions: { sopt: ['cn'] } },
+                    { label: 'Fecha de Creación', name: 'created_at', width: 150, formatter: 'date', formatoptions: { srcformat: 'Y-m-d H:i:s', newformat: 'd/m/Y H:i' }, searchoptions: { sopt: ['eq'] } }
+                ],
+                viewrecords: true,
+                width: 1200,
+                height: 400,
+                rowNum: 100,
+                pager: "#pager",
+                caption: "Gestión de Conversaciones",
+                autowidth: true,
+                shrinkToFit: true
+            });
+
+            // Habilitar toolbar search con búsqueda en tiempo real
+            $("#grid").jqGrid('filterToolbar', {
+                stringResult: true,
+                searchOnEnter: false, // Actualizar automáticamente sin presionar Enter
+                defaultSearch: "cn",  // Búsqueda por defecto: contiene
+                beforeSearch: function () {
+                    setTimeout(function () {
+                        $("#grid").trigger("reloadGrid");
+                    }, 0);
+                    return false; // Evitar la búsqueda predeterminada
+                }
+            });
+        });
+    </script>
+</body>
+{% endblock %}

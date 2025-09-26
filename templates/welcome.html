@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat en Línea</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/wcss.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" href="{{ url_for('static', filename='machín/machin-cabeza-favicon.png') }}" type="image/png">
+</head>
+<body style="background-image: url('{{ url_for('static', filename='images/fondo-login-machin-gpscontrol-c.jpg') }}');" >
+<div class="chat-container">
+    <img src="{{ url_for('static', filename='machín/machin-face.jpg') }}" alt="El Machín" class="circular-image">
+    <h3>
+        <img src="{{ url_for('static', filename='images/isotipo-GPScontrol-machin.png') }}" alt="Seguridad GPScontrol" class="isologo-gps">
+        Ingresa tus datos para <br>
+        iniciar nuestro chat.
+    </h3>
+    <form onsubmit="sendInfo(); return false;">
+        <label for="name_gpc">Nombre:</label>
+        <input type="text" id="name_gpc" placeholder="Escribe tu nombre" required>
+        <label for="phone_gpc">Teléfono:</label>
+        <input type="tel" id="phone_gpc" placeholder="Escribe tu número de teléfono" required>
+        <div class="radio-group">
+            <p>Contactar con el área de:</p>
+            <label><input type="radio" name="contacto" value="ventas" required checked> Ventas</label>
+            <label><input type="radio" name="contacto" value="soporte" required> Soporte</label>
+        </div>
+        <button type="submit">
+            <i class="fas fa-paper-plane"></i> Iniciar Chat
+        </button>
+    </form>
+    <div class="footer">GPScontrol · Madd Systems</div>
+</div>
+<script src="{{ url_for('static', filename='js/ws.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Cliente</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+</head>
+<body>
+    <h1>Chat Cliente</h1>
+    <div id="chat-box"></div>
+    <input type="text" id="message-input" placeholder="Escribe un mensaje...">
+    <button id="send-btn">Enviar</button>
+
+    <script>
+        const socket = io('http://localhost:5000');
+        const chatBox = document.getElementById('chat-box');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const userId = 'unique-user-id'; // Genera dinámicamente el ID
+
+        // Unirse al chat
+        socket.emit('join_chat', { user_id: userId, role: 'user' });
+
+        // Escuchar mensajes
+        socket.on('receive_message', (data) => {
+            const msgDiv = document.createElement('div');
+            msgDiv.textContent = `${data.role}: ${data.message}`;
+            chatBox.appendChild(msgDiv);
+        });
+
+        // Enviar mensaje
+        sendBtn.addEventListener('click', () => {
+            const message = messageInput.value;
+            socket.emit('send_message', { user_id: userId, role: 'user', message });
+            messageInput.value = '';
+        });
+    </script>
+</body>
+</html>

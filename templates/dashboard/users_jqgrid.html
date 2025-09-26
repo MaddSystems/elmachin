@@ -1,0 +1,69 @@
+{% extends "/dashboard/base.html" %}
+{% block title %}Model{% endblock %}
+
+{% block content %}
+    <div class="container py-4">
+        <h1 class="text-center mb-4">Chats de Usuarios</h1>
+        <table id="grid"></table>
+        <div id="pager"></div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/free-jqgrid/js/jquery.jqgrid.min.js"></script>
+
+
+    <script>
+        $(document).ready(function () {
+            $("#grid").jqGrid({
+                url: '/get_chat_reports', // Ruta para obtener los datos
+                datatype: "json",
+                colModel: [
+                    { label: 'ID', name: 'id', width: 50, key: true, searchoptions: { sopt: ['eq'] } },
+                    { label: 'Nombre', name: 'name', width: 150, searchoptions: { sopt: ['cn'] } },
+                    { label: 'Teléfono', name: 'phone', width: 100, searchoptions: { sopt: ['cn'] } },
+                    { label: 'Correo Electrónico', name: 'email', width: 150, searchoptions: { sopt: ['cn'] } },
+                    { label: 'Sesión', name: 'session', width: 100, searchoptions: { sopt: ['cn'] } },
+                    { 
+                        label: 'URL', 
+                        name: 'url', 
+                        width: 150, 
+                        editable: false,
+                        formatter: function(cellvalue, options, rowObject) {
+                            return `<a href="${cellvalue}" target="_blank">${cellvalue}</a>`;
+                        }
+                    },
+                    { label: 'Estado', name: 'status', width: 100, searchoptions: { sopt: ['cn'] } },
+                    { label: 'Contexto', name: 'context', width: 100, searchoptions: { sopt: ['cn'] } },
+                    { label: 'Agente', name: 'agent', width: 150, searchoptions: { sopt: ['cn'] } },
+                    { label: 'IP', name: 'direction_ip', width: 100, searchoptions: { sopt: ['cn'] } },
+                    { label: 'Fecha de Creación', name: 'created_at', width: 150, formatter: 'date', formatoptions: { srcformat: 'Y-m-d H:i:s', newformat: 'd/m/Y H:i' }, searchoptions: { sopt: ['eq'] } }
+                ],
+                rowNum: 10,
+                rowList: [10, 20, 30],
+                sortname: "id",
+                sortorder: "asc",                
+                viewrecords: true,
+                width: 1200,
+                height: 400,
+                rowNum: 50,
+                pager: "#pager",
+                caption: "Gestión de Informes de Chat",
+                autowidth: true,
+                shrinkToFit: true
+            });
+
+            // Habilitar toolbar search con búsqueda en tiempo real
+            $("#grid").jqGrid('filterToolbar', {
+                stringResult: true,
+                searchOnEnter: false, // Actualizar automáticamente sin presionar Enter
+                defaultSearch: "cn",  // Búsqueda por defecto: contiene
+                beforeSearch: function () {
+                    setTimeout(function () {
+                        $("#grid").trigger("reloadGrid");
+                    }, 0);
+                    return false; // Evitar la búsqueda predeterminada
+                }
+            });
+        });
+    </script>
+{% endblock %}

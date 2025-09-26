@@ -1,0 +1,107 @@
+{% extends "/dashboard/base.html" %}
+{% block title %}Model{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+    <h1 class="text-center mb-4">Gestión de Intenciones</h1>
+
+    <table id="grid"></table>
+    <div id="pager"></div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/free-jqgrid/js/jquery.jqgrid.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $("#grid").jqGrid({
+            url: '/get_intentions',
+            datatype: "json",
+            mtype: "GET",
+            colNames: ["ID", "Intención", "Descripción", "Clasificación", "Fecha de Creación"],
+            colModel: [
+                { label: 'ID', name: 'id', width: 50, key: true, editable: false },
+                { label: 'Intención', name: 'intention', width: 100, editable: true },
+                { label: 'Descripción', name: 'descrition', width: 150, editable: true },
+                { label: 'Clasificación', name: 'clasification', width: 150, editable: true, edittype: 'select', editoptions: { value: "internal:Interno;external:Externo" } },
+                { label: 'Fecha de Creación', name: 'created_at', width: 150, formatter: 'date', formatoptions: { srcformat: 'Y-m-d H:i:s', newformat: 'd/m/Y H:i' }, editable: false }
+            ],
+            pager: "#pager",
+            rowNum: 50,
+            rowList: [10, 20, 30],
+            sortname: "id",
+            sortorder: "asc",
+            viewrecords: true,
+            gridview: true,
+            height: "auto",
+            caption: "Lista de Archivos",
+            height: 400,
+            width: 1200,
+            loadError: function(xhr, status, error) {
+                console.error("Error loading data:", error, xhr.responseText);
+            }
+        });
+
+        // Habilitar la barra de búsqueda
+        $("#grid").jqGrid('filterToolbar', {
+            stringResult: true,
+            searchOnEnter: false,
+            defaultSearch: "cn"
+        });
+
+        $("#grid").jqGrid('navGrid', '#pager',
+            { edit: true, add: true, del: true, search: true, refresh: true },
+            {
+                url: "/edit_intention",
+                mtype: "PUT",
+                closeAfterEdit: true,
+                beforeSubmit: function(postData) {
+                    if (!postData.intention || !postData.descrition || !postData.clasification) {
+                        return [false, "Todos los campos son obligatorios"];
+                    }
+                    return [true, ""];
+                },
+                serializeEditData: function(postData) {
+                    return JSON.stringify(postData);
+                },
+                ajaxEditOptions: { contentType: "application/json" },
+                afterSubmit: function(response) {
+                    return response.responseJSON.error ? [false, response.responseJSON.error] : [true, "", ""];
+                }
+            },
+            {
+                url: "/add_intention",
+                mtype: "POST",
+                closeAfterAdd: true,
+                beforeSubmit: function(postData) {
+                    if (!postData.intention || !postData.descrition || !postData.clasification) {
+                        return [false, "Todos los campos son obligatorios"];
+                    }
+                    return [true, ""];
+                },
+                serializeEditData: function(postData) {
+                    return JSON.stringify(postData);
+                },
+                ajaxEditOptions: { contentType: "application/json" },
+                afterSubmit: function(response) {
+                    return response.responseJSON.error ? [false, response.responseJSON.error] : [true, "", ""];
+                }
+            },
+            {
+                url: "/delete_intention",
+                mtype: "DELETE",
+                closeAfterDel: true,
+                serializeDelData: function(postData) {
+                    return JSON.stringify(postData);
+                },
+                ajaxDelOptions: { contentType: "application/json" },
+                afterSubmit: function(response) {
+                    return response.responseJSON.error ? [false, response.responseJSON.error] : [true, "", ""];
+                }
+            }
+        );
+    });
+</script>
+{% endblock %}

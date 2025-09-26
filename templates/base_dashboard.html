@@ -1,0 +1,97 @@
+<!-- <!DOCTYPE html>
+<html lang="es">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <canvas id="videoChart"></canvas>
+
+    <script>
+        fetch('/get_video_watch_metrics')
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('videoChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.videos_watch_percentage.map(v => v.video_name),
+                    datasets: [{
+                        label: 'Porcentaje de Visualización',
+                        data: data.videos_watch_percentage.map(v => v.avg_watch_percentage),
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)'
+                    }]
+                }
+            });
+        });
+    </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Métricas</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Dashboard de Métricas</h1>
+
+    <!-- Gráfico de Porcentaje de Visualización de Videos -->
+    <h2>Porcentaje de Visualización de Videos</h2>
+    <canvas id="videoChart"></canvas>
+
+    <!-- Gráfico de Respuestas Más Comunes -->
+    <h2>Respuestas Más Comunes</h2>
+    <canvas id="responseChart"></canvas>
+
+    <script>
+        // Datos de videos
+        const videoData = {{ videos_watch_data | tojson }};
+        const videoLabels = videoData.map(v => v.video_name);
+        const videoPercentages = videoData.map(v => v.avg_watch_percentage);
+
+        const ctx1 = document.getElementById('videoChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: videoLabels,
+                datasets: [{
+                    label: 'Porcentaje Visto',
+                    data: videoPercentages,
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Datos de respuestas comunes
+        const responseData = {{ common_responses_data | tojson }};
+        const responseLabels = responseData.map(r => r.response_text);
+        const responseCounts = responseData.map(r => r.count);
+
+        const ctx2 = document.getElementById('responseChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'pie',
+            data: {
+                labels: responseLabels,
+                datasets: [{
+                    data: responseCounts,
+                    backgroundColor: ['#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff']
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    </script>
+</body>
+</html>

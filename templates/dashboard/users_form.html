@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ entry.id ? 'Editar Registro' : 'Agregar Registro' }}</title>
+</head>
+<body>
+    <h1>{{ entry.id ? 'Editar Registro' : 'Agregar Registro' }}</h1>
+    <form method="POST" action="{{ url_for('save') }}">
+        <input type="hidden" name="id" value="{{ entry.id if entry else '' }}">
+        <label>Archivo:</label>
+        <input type="text" name="file" value="{{ entry.file if entry else '' }}"><br>
+        <label>Entrada:</label>
+        <input type="text" name="input" value="{{ entry.input if entry else '' }}"><br>
+        <label>Clasificación:</label>
+        <input type="text" name="clasification" value="{{ entry.clasification if entry else '' }}"><br>
+        <label>Intención:</label>
+        <input type="text" name="intention" value="{{ entry.intention if entry else '' }}"><br>
+        <label>Palabras Clave (JSON):</label>
+        <textarea name="keywords">{{ entry.keywords if entry else '' }}</textarea><br>
+        <label>Respuesta:</label>
+        <textarea name="answer">{{ entry.answer if entry else '' }}</textarea><br>
+        <label>Llamada a Acción:</label>
+        <input type="text" name="call_to_action" value="{{ entry.call_to_action if entry else '' }}"><br>
+        <label>Respuestas Sugeridas (JSON):</label>
+        <textarea name="suggested_responses">{{ entry.suggested_responses if entry else '' }}</textarea><br>
+        <button type="submit">Guardar</button>
+    </form>
+</body>
+</html>

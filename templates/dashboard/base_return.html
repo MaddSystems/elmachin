@@ -1,0 +1,158 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Mi Aplicación{% endblock %}</title>
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/tables.css') }}"> -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/free-jqgrid/css/ui.jqgrid.min.css">
+    <link rel="icon" href="{{ url_for('static', filename='/machín/el_machin.png') }}" type="image/png">
+    <!-- Agregar Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Botón para abrir/cerrar el menú -->
+    <button class="toggle-btn open" onclick="toggleSidebar()">✕ Cerrar</button>
+
+    <!-- Menú desplegable -->
+    <div class="sidebar open" id="sidebar">
+        <ul>
+            <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a></li>
+        </ul>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="content">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- Script para el menú desplegable -->
+    <!-- <script src="{{ url_for('static', filename='js/tables.js') }}"></script> -->
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.querySelector('.toggle-btn');
+
+            // Alternar la clase 'open' en el menú y el botón
+            sidebar.classList.toggle('open');
+            toggleBtn.classList.toggle('open');
+
+            // Cambiar el texto del botón según el estado del menú
+            if (sidebar.classList.contains('open')) {
+                toggleBtn.textContent = '✕ Cerrar';
+            } else {
+                toggleBtn.textContent = '☰ Menú';
+            }
+        }
+    </script>
+</body>
+</html>
+
+<style>
+    /* static/styles.css */
+
+/* Estilo general */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    padding-left: 60px; /* Espacio inicial para el botón del menú */
+}
+
+/* Botón del menú */
+.toggle-btn {
+    position: fixed;
+    top: 20px;
+    left: 270px; /* Posición inicial cuando el menú está abierto */
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    z-index: 1000;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.toggle-btn.open {
+    left: 270px; /* Mover el botón hacia la derecha cuando el menú está abierto */
+}
+
+.toggle-btn:not(.open) {
+    left: 20px; /* Mover el botón hacia la izquierda cuando el menú está cerrado */
+    background-color: #e74c3c; /* Cambiar color cuando está cerrado */
+}
+
+/* Menú desplegable */
+.sidebar {
+    height: 100vh;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    left: 0; /* Mostrar el menú por defecto */
+    background-color: #2c3e50;
+    transition: left 0.3s ease;
+    overflow-y: auto;
+    z-index: 999;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2); /* Sombra para destacar el menú */
+}
+
+.sidebar:not(.open) {
+    left: -250px; /* Ocultar el menú cuando no tiene la clase 'open' */
+}
+
+/* Lista de opciones del menú */
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar ul li {
+    padding: 15px 20px;
+    border-bottom: 1px solid #34495e;
+    transition: background-color 0.3s ease;
+}
+
+.sidebar ul li:last-child {
+    border-bottom: none; /* Eliminar borde inferior del último elemento */
+}
+
+.sidebar ul li:hover {
+    background-color: #34495e; /* Cambiar color al pasar el mouse */
+}
+
+.sidebar ul li a {
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    display: flex;
+    align-items: center; /* Alinear íconos y texto verticalmente */
+}
+
+.sidebar ul li a i {
+    margin-right: 10px; /* Espaciado entre el ícono y el texto */
+    font-size: 18px; /* Tamaño del ícono */
+}
+
+.sidebar ul li a:hover {
+    color: #ecf0f1; /* Cambiar color del texto al pasar el mouse */
+}
+
+/* Contenido principal */
+.content {
+    margin-left: 270px; /* Ajustar margen para evitar superposición con el menú */
+    padding: 20px;
+    transition: margin-left 0.3s ease;
+}
+
+.content:not(.open) {
+    margin-left: 60px; /* Reducir margen cuando el menú está cerrado */
+}
+</style>

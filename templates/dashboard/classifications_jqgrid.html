@@ -1,0 +1,98 @@
+{% extends "/dashboard/base.html" %}
+{% block title %}Model{% endblock %}
+
+{% block content %}
+
+    <div class="container py-4">
+        <h1 class="text-center mb-4">Gestión de Clasificaciones</h1>
+
+        <table id="grid"></table>
+        <div id="pager"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/free-jqgrid/js/jquery.jqgrid.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $("#grid").jqGrid({
+                url: '/get_classifications',
+                datatype: "json",
+                mtype: "GET",
+                colNames: ["ID", "Clasificación", "Descripción", "Fechas"],
+                colModel: [
+                    { label: 'ID', name: 'id', width: 50, key: true, searchoptions: { sopt: ['cn'] } },
+                    { label: 'Clasificación', name: 'clasification', width: 100, searchoptions: { sopt: ['cn'] } },
+                    { label: 'Descripcion', name: 'description', width: 150, searchoptions: { sopt: ['cn'] } },
+                    { label: 'Fecha de Creación', name: 'created_at', width: 150, formatter: 'date', formatoptions: { srcformat: 'Y-m-d H:i:s', newformat: 'd/m/Y H:i' }, searchoptions: { sopt: ['eq'] } }
+                ],
+                pager: "#pager",
+                rowNum: 10,
+                rowList: [10, 20, 30],
+                sortname: "id",
+                sortorder: "desc",
+                viewrecords: true,
+                gridview: true,
+                autowidth: true,
+                height: "auto",
+                caption: "Lista de Clasificaciones",
+                loadError: function(xhr, status, error) {
+                    console.error("Error loading data:", error, xhr.responseText);
+                }
+            });
+
+            // Habilitar la barra de búsqueda
+            $("#grid").jqGrid('filterToolbar', {
+                stringResult: true, // Envía los filtros como una cadena JSON
+                searchOnEnter: false, // Permite buscar sin presionar Enter
+                defaultSearch: "cn" // Búsqueda por defecto: contiene (contains)
+            });
+
+            $("#grid").jqGrid('navGrid', '#pager',
+                { edit: true, add: true, del: true, search: false, refresh: true },
+                {
+                    url: "/clasification",
+                    mtype: "PUT",
+                    closeAfterEdit: true,
+                    serializeEditData: function(postData) {
+                        return JSON.stringify(postData);
+                    },
+                    ajaxEditOptions: { contentType: "application/json" },
+                    afterSubmit: function(response) {
+                        return response.responseJSON.error ? [false, response.responseJSON.error] : [true, "", ""];
+                    }
+                },
+                {
+                    url: "/clasification",
+                    mtype: "POST",
+                    closeAfterAdd: true,
+                    afterShowForm: function ($form) {
+                        // Agregar campo de contraseña al formulario
+                        $form.append('<label for="password">Password:</label> <input type="password" id="password" name="password" class="FormElement ui-widget-content ui-corner-all">');
+                    },
+                    serializeEditData: function(postData) {
+                        postData.password = $("#password").val(); // Agregar la contraseña al envío
+                        return JSON.stringify(postData);
+                    },
+                    ajaxEditOptions: { contentType: "application/json" },
+                    afterSubmit: function(response) {
+                        return response.responseJSON.error ? [false, response.responseJSON.error] : [true, "", ""];
+                    }
+                },
+                {
+                    url: "/clasification",
+                    mtype: "DELETE",
+                    closeAfterDel: true,
+                    serializeDelData: function(postData) {
+                        return JSON.stringify(postData);
+                    },
+                    ajaxDelOptions: { contentType: "application/json" },
+                    afterSubmit: function(response) {
+                        return response.responseJSON.error ? [false, response.responseJSON.error] : [true, "", ""];
+                    }
+                }
+            );
+        });
+    </script>
+{% endblock %}

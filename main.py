@@ -1,27 +1,32 @@
 #!/usr/bin/env python3
 """
-Simplified WhatsApp & Messenger Webhook with ChatGPT Integration
+Enhanced GPS Control Chatbot with Multi-Channel Support
 
-This is a clean, simplified version extracted from the main.py file,
-focusing only on Meta's webhook endpoints (WhatsApp & Messenger) 
-with ChatGPT responses instead of the Google A2A SDK.
+This enhanced version integrates the GPS Control chatbot system with:
+- Advanced context management and intent recognition
+- Database integration for conversation tracking  
+- Multi-channel support (WhatsApp, Messenger, Web)
+- GPS Control specific responses and workflows
+- Dashboard and admin interface
 
-Key Features:
+Features:
 - WhatsApp Cloud API webhook handling
 - Facebook Messenger webhook handling  
-- OpenAI ChatGPT integration for responses
-- Async message processing with aiohttp
-- Basic error handling and logging
+- Advanced chatbot AI with context awareness
+- Database conversation tracking
+- Admin dashboard for chat management
+- GPS Control specific intent classification
 
-Author: Extracted from chambella-docs/main.py
+Author: Enhanced for GPS Control by Armaddia
 """
 
 import asyncio
 import os
 import json
 import logging
-from datetime import datetime
-from flask import Flask, request, jsonify, render_template
+from datetime import datetime, timedelta
+from flask import Flask, request, jsonify, render_template, redirect, url_for, session
+from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, emit
 from dotenv import load_dotenv
 import aiohttp
@@ -29,6 +34,15 @@ import openai
 from asgiref.wsgi import WsgiToAsgi
 import uvicorn
 import eventlet
+
+# Import our enhanced modules
+from model.config import DB_CONFIG, OPENAI_CONFIG, CONTEXT_CONFIG, GPSCONTROL_CONFIG
+from model.models import (
+    db, User, Seller, Conversation, ChatReport, UserContext, 
+    QuoteService, get_or_create_chat_report, get_or_create_user_context
+)
+from utilities.context_manager import get_contextual_response, analyze_intent
+from utilities.classifier import classify_message, get_suggested_responses
 
 # Load environment variables
 load_dotenv()
@@ -41,15 +55,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Initialize Flask app with Socket.IO
-app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
-asgi_app = WsgiToAsgi(app)
-
-# =============================================================================
-# CONFIGURATION
-# =============================================================================
-
+# Utility function
 def get_env_var(key, default=None):
     """Get environment variable and strip whitespace"""
     value = os.getenv(key, default)
@@ -57,8 +63,26 @@ def get_env_var(key, default=None):
         value = value.strip()
     return value
 
-# Set Flask secret key after function is defined
-app.config['SECRET_KEY'] = get_env_var('SECRET_KEY', 'your_secret_key_here')
+# Initialize Flask app with Socket.IO
+app = Flask(__name__)
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+asgi_app = WsgiToAsgi(app)
+
+# Configure Flask app with database settings
+app.config.update(DB_CONFIG)
+app.config['SECRET_KEY'] = get_env_var('SECRET_KEY', 'gps_control_secret_key_2024')
+
+# Initialize database
+db.init_app(app)
+
+# Create tables if they don't exist
+with app.app_context():
+    db.create_all()
+    logger.info("Database tables created successfully")
+
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
 
 # Meta API Configuration
 VERIFY_TOKEN = get_env_var("VERIFY_TOKEN", "your_verify_token_here")
@@ -88,45 +112,179 @@ Server: {HOST}:{PORT}
 # OPENAI CHATGPT INTEGRATION
 # =============================================================================
 
-async def get_chatgpt_response(user_message: str, user_id: str = None) -> str:
+async def get_enhanced_chatbot_response(user_message: str, user_id: str, channel: str = "web") -> str:
     """
-    Send user message to ChatGPT and get response
+    Enhanced chatbot response using context management and GPS Control classification
     """
     try:
-        logger.info(f"Sending message to ChatGPT from user {user_id}: {user_message}")
+        logger.info(f"Processing message from user {user_id} via {channel}: {user_message}")
+        
+        # First, try GPS Control specific classification
+        gps_response, gps_intent, gps_confidence = classify_message(user_message)
+        
+        if gps_confidence > 0.4:  # Use GPS Control response if confident
+            logger.info(f"Using GPS Control response (confidence: {gps_confidence:.2f})")
+            
+            # Save conversation to database
+            await save_conversation(user_id, channel, user_message, gps_response, gps_intent, gps_confidence)
+            
+            return gps_response
+        
+        # If GPS Control classifier isn't confident, use context manager
+        context_response, context_intent, context_confidence = get_contextual_response(
+            user_message, user_id, channel
+        )
+        
+        if context_confidence > 0.3:
+            logger.info(f"Using context response (confidence: {context_confidence:.2f})")
+            
+            # Save conversation to database
+            await save_conversation(user_id, channel, user_message, context_response, context_intent, context_confidence)
+            
+            return context_response
+        
+        # Fallback to enhanced ChatGPT with GPS Control context
+        chatgpt_response = await get_chatgpt_with_gps_context(user_message, user_id, channel)
+        
+        # Save conversation to database
+        await save_conversation(user_id, channel, user_message, chatgpt_response, "chatgpt_fallback", 0.8)
+        
+        return chatgpt_response
+        
+    except Exception as e:
+        logger.error(f"Error in enhanced chatbot response: {e}")
+        return "Disculpa, tuve un problema técnico. ¿Podrías repetir tu mensaje? 🤔"
+
+async def get_chatgpt_with_gps_context(user_message: str, user_id: str, channel: str) -> str:
+    """
+    Send user message to ChatGPT with GPS Control context
+    """
+    try:
+        # Get conversation context
+        recent_conversations = await get_recent_conversations(user_id, channel)
+        
+        # Build context-aware prompt
+        system_prompt = f"""Eres Machín, el asistente virtual de GPS Control, una empresa mexicana líder en rastreo satelital y seguridad vehicular.
+
+INFORMACIÓN DE LA EMPRESA:
+- Nombre: GPS Control by Machín
+- Servicios: Rastreo GPS satelital, cámaras de seguridad, monitoreo 24/7
+- Especialidades: Soluciones para particulares y empresas
+- Ubicación: México
+- Teléfono: {GPSCONTROL_CONFIG['support_phone']}
+- Email: {GPSCONTROL_CONFIG['support_email']}
+
+PERSONALIDAD:
+- Amigable y profesional
+- Conocedor de tecnología GPS y seguridad
+- Enfocado en ayudar al cliente
+- Usa emojis moderadamente
+- Responde en español mexicano
+
+SERVICIOS PRINCIPALES:
+1. GPS Satelital: Rastreo en tiempo real, geocercas, reportes
+2. Cámaras de Seguridad: Grabación en nube, visión nocturna, acceso remoto
+3. Monitoreo 24/7: Centro de control dedicado
+4. Soluciones Empresariales: Gestión de flotas, optimización de rutas
+
+INSTRUCCIONES:
+- Si preguntan por precios, solicita detalles (tipo de vehículo, cantidad, uso)
+- Ofrece videos explicativos cuando sea relevante
+- Menciona beneficios específicos de GPS Control
+- Deriva a cotización cuando sea apropiado
+- Mantén respuestas concisas pero completas"""
+
+        # Add conversation history if available
+        messages = [{"role": "system", "content": system_prompt}]
+        
+        if recent_conversations:
+            for conv in recent_conversations[-3:]:  # Last 3 conversations
+                messages.append({"role": "user", "content": conv['message']})
+                messages.append({"role": "assistant", "content": conv['response']})
+        
+        messages.append({"role": "user", "content": user_message})
         
         # Create the chat completion request
         response = openai.ChatCompletion.create(
-            model="gpt-4o-mini-2024-07-18",  # switched to 4-mini
-            messages=[
-            {
-                "role": "system", 
-                "content": "You are a helpful assistant. Respond in a friendly and concise manner. If the user writes in Spanish, respond in Spanish. If in English, respond in English."
-            },
-            {
-                "role": "user", 
-                "content": user_message
-            }
-            ],
-            max_tokens=500,  # Limit response length for messaging apps
-            temperature=0.7
+            model=OPENAI_CONFIG['model'],
+            messages=messages,
+            max_tokens=OPENAI_CONFIG['max_tokens'],
+            temperature=OPENAI_CONFIG['temperature']
         )
         
-        chatgpt_reply = response.choices[0].message.content.strip()
-        logger.info(f"ChatGPT response for {user_id}: {chatgpt_reply}")
-        return chatgpt_reply
+        chatgpt_response = response.choices[0].message.content.strip()
+        logger.info(f"ChatGPT response generated for user {user_id}")
+        
+        return chatgpt_response
         
     except openai.error.RateLimitError:
-        logger.error("OpenAI rate limit exceeded")
-        return "Lo siento, he alcanzado mi límite de uso por el momento. Intenta más tarde. / Sorry, I've reached my usage limit. Please try again later."
+        logger.warning("OpenAI rate limit exceeded")
+        return "Estoy recibiendo muchas consultas. Por favor intenta en unos momentos. 🕒"
         
     except openai.error.InvalidRequestError as e:
         logger.error(f"OpenAI invalid request: {e}")
-        return "Hubo un problema procesando tu mensaje. / There was a problem processing your message."
+        return "Disculpa, hubo un problema con tu consulta. ¿Podrías reformularla? 🤔"
         
     except Exception as e:
-        logger.error(f"Error getting ChatGPT response: {e}", exc_info=True)
-        return "Disculpa, ocurrió un error. Intenta de nuevo. / Sorry, an error occurred. Please try again."
+        logger.error(f"Error calling ChatGPT API: {e}")
+        return "Disculpa, tengo un problema técnico temporal. ¿Podrías intentar de nuevo? ⚠️"
+
+# =============================================================================
+# DATABASE HELPER FUNCTIONS
+# =============================================================================
+
+async def save_conversation(user_id: str, channel: str, message: str, response: str, intent: str, confidence: float):
+    """Save conversation to database"""
+    try:
+        # Create new conversation record
+        conversation = Conversation(
+            user_id=user_id,
+            channel=channel,
+            message=message,
+            response=response,
+            intent=intent,
+            confidence=confidence,
+            session_id=f"{user_id}_{channel}_{datetime.now().strftime('%Y%m%d')}"
+        )
+        
+        db.session.add(conversation)
+        
+        # Update or create chat report
+        chat_report = get_or_create_chat_report(user_id, channel)
+        chat_report.message_count += 1
+        chat_report.last_interaction = datetime.now()
+        
+        # Update intent summary
+        if chat_report.intent_summary is None:
+            chat_report.intent_summary = {}
+        
+        if intent in chat_report.intent_summary:
+            chat_report.intent_summary[intent] += 1
+        else:
+            chat_report.intent_summary[intent] = 1
+        
+        db.session.commit()
+        logger.info(f"Conversation saved for user {user_id}")
+        
+    except Exception as e:
+        logger.error(f"Error saving conversation: {e}")
+        db.session.rollback()
+
+async def get_recent_conversations(user_id: str, channel: str, limit: int = 5):
+    """Get recent conversations for context"""
+    try:
+        conversations = Conversation.query.filter_by(
+            user_id=user_id,
+            channel=channel
+        ).order_by(
+            Conversation.created_at.desc()
+        ).limit(limit).all()
+        
+        return [conv.to_dict() for conv in conversations]
+        
+    except Exception as e:
+        logger.error(f"Error getting recent conversations: {e}")
+        return []
 
 # =============================================================================
 # UNIFIED MESSAGE PROCESSING
@@ -139,21 +297,21 @@ async def process_message_unified(message_text: str, sender_id: str, channel: st
     try:
         logger.info(f"Processing message from {channel} user {sender_id}: '{message_text}'")
         
-        # Get ChatGPT response
-        chatgpt_response = await get_chatgpt_response(message_text, f"{channel}_{sender_id}")
+        # Get enhanced chatbot response with GPS Control context
+        bot_response = await get_enhanced_chatbot_response(message_text, sender_id, channel)
         
         # Send response based on channel
         if channel == 'web':
             # Emit response to web interface via Socket.IO
             socketio.emit('bot_response', {
-                'message': chatgpt_response,
+                'message': bot_response,
                 'sender_id': sender_id,
                 'timestamp': datetime.now().isoformat()
             })
             return True
         else:
             # Try to send to WhatsApp or Messenger
-            success = await send_message_async(channel, sender_id, chatgpt_response)
+            success = await send_message_async(channel, sender_id, bot_response)
             
             # If WhatsApp fails, try template message for re-engagement
             if not success and channel == 'whatsapp':
@@ -463,6 +621,150 @@ async def webhook_whatsapp():
         except Exception as e:
             logger.error(f"Error processing WhatsApp webhook: {e}", exc_info=True)
             return jsonify({"status": "error", "message": "Internal Server Error"}), 500
+
+# =============================================================================
+# DASHBOARD AND ADMIN ROUTES
+# =============================================================================
+
+@app.route("/dashboard")
+def dashboard():
+    """Admin dashboard for conversation monitoring"""
+    try:
+        # Get conversation statistics
+        total_conversations = Conversation.query.count()
+        total_users = db.session.query(Conversation.user_id).distinct().count()
+        
+        # Get recent conversations
+        recent_conversations = Conversation.query.order_by(
+            Conversation.created_at.desc()
+        ).limit(10).all()
+        
+        # Get intent statistics
+        intent_stats = {}
+        conversations_with_intent = Conversation.query.filter(
+            Conversation.intent.isnot(None)
+        ).all()
+        
+        for conv in conversations_with_intent:
+            intent = conv.intent
+            if intent in intent_stats:
+                intent_stats[intent] += 1
+            else:
+                intent_stats[intent] = 1
+        
+        return render_template('dashboard.html', 
+                             total_conversations=total_conversations,
+                             total_users=total_users,
+                             recent_conversations=recent_conversations,
+                             intent_stats=intent_stats)
+    except Exception as e:
+        logger.error(f"Error loading dashboard: {e}")
+        return f"Error loading dashboard: {e}", 500
+
+@app.route("/api/conversations")
+def api_conversations():
+    """API endpoint for conversation data"""
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 50, type=int)
+        
+        conversations = Conversation.query.order_by(
+            Conversation.created_at.desc()
+        ).paginate(
+            page=page, 
+            per_page=per_page, 
+            error_out=False
+        )
+        
+        return jsonify({
+            'conversations': [conv.to_dict() for conv in conversations.items],
+            'total': conversations.total,
+            'pages': conversations.pages,
+            'current_page': page
+        })
+    except Exception as e:
+        logger.error(f"Error getting conversations: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route("/api/stats")
+def api_stats():
+    """API endpoint for statistics"""
+    try:
+        stats = {
+            'total_conversations': Conversation.query.count(),
+            'total_users': db.session.query(Conversation.user_id).distinct().count(),
+            'conversations_today': Conversation.query.filter(
+                Conversation.created_at >= datetime.now().replace(hour=0, minute=0, second=0)
+            ).count(),
+            'top_intents': {}
+        }
+        
+        # Get top intents
+        intents = db.session.query(
+            Conversation.intent, 
+            db.func.count(Conversation.intent)
+        ).filter(
+            Conversation.intent.isnot(None)
+        ).group_by(Conversation.intent).order_by(
+            db.func.count(Conversation.intent).desc()
+        ).limit(10).all()
+        
+        stats['top_intents'] = {intent: count for intent, count in intents}
+        
+        return jsonify(stats)
+    except Exception as e:
+        logger.error(f"Error getting stats: {e}")
+        return jsonify({'error': str(e)}), 500
+
+# =============================================================================
+# WEB CHAT ENDPOINT
+# =============================================================================
+
+@app.route("/chat", methods=["POST"])
+def chat():
+    """Handle web chat messages via HTTP POST"""
+    try:
+        data = request.get_json()
+        message_text = data.get('message', '').strip()
+        chat_id = data.get('chat_id', '')
+        who_is_connected = data.get('who_is_conected', '')
+        
+        if not message_text:
+            return jsonify({'error': 'Empty message'}), 400
+        
+        # Use chat_id as session_id if available, otherwise generate one
+        session_id = chat_id if chat_id else f"web_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        
+        # Process message asynchronously using our unified processor
+        def process_and_respond():
+            try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                result = loop.run_until_complete(
+                    get_enhanced_chatbot_response(message_text, session_id, "web")
+                )
+                loop.close()
+                return result
+            except Exception as e:
+                logger.error(f"Error in chat processing: {e}")
+                return "¡Ups! Lo siento, algo salió mal. Por favor, intenta nuevamente más tarde o contacta a uno de nuestros asesores para obtener ayuda. ¡Gracias por tu paciencia!"
+        
+        bot_response = process_and_respond()
+        
+        # Return response in the format expected by the frontend
+        return jsonify({
+            'response': bot_response,
+            'status': 'success',
+            'chat_id': session_id,
+            'quick_responses': []  # Can add quick responses here later
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in chat endpoint: {e}", exc_info=True)
+        return jsonify({
+            'response': '¡Ups! Lo siento, algo salió mal. Por favor, intenta nuevamente más tarde o contacta a uno de nuestros asesores para obtener ayuda. ¡Gracias por tu paciencia!',
+            'error': 'Processing failed'
+        }), 500
 
 # =============================================================================
 # BASIC ROUTES

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat en Línea</title>
+      
+          <!-- Agregamos Font Awesome para los íconos -->
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+    <style>
+    
+    .input-container {
+      position: relative;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .input-box {
+      position: relative;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      transition: border 0.3s ease-in-out;
+    }
+
+    .input-box label {
+      position: absolute;
+      top: -10px; /* Se coloca justo sobre la línea superior */
+      left: 10px;
+      background: white; /* Para que no se mezcle con el borde */
+      padding: 0 5px;
+      font-size: 14px;
+      color: #666;
+      transition: 0.3s ease-in-out;
+    }
+
+    .input-box input {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-size: 16px;
+      padding: 5px;
+      background: none;
+    }
+
+    /* Opcional: Cambia el borde cuando el input está activo */
+    .input-box:focus-within {
+      border-color: #007bff;
+    }
+
+    /*---------------------------------- */
+
+    .question-box {
+      position: relative;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+    }   
+
+    .question-box .title {
+      position: absolute;
+      top: -12px; /* Hace que el título flote sobre el borde */
+      left: 15px;
+      background: white;
+      padding: 0 10px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #007bff;
+    }   
+
+    .question {
+      margin-bottom: 10px;
+      font-size: 16px;
+      color: #333;
+    }
+
+    /* -------------------------------------- */
+
+    .btn-enviar {
+            background-color: #2E7D32; /* Color verde */
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px; /* Tamaño fijo */
+            height: 40px;
+            transition: background 0.3s;
+        }
+
+        .btn-enviar:hover {
+            background-color: #1B5E20; /* Verde más oscuro al pasar el cursor */
+        }
+
+        .btn-enviar svg {
+            width: 20px;
+            height: 20px;
+            fill: white; /* Color de la flecha */
+        }
+
+        /* -------------------------------------------------- */
+        .btn-enviar {
+            background-color: #4CAF50; /* Verde */
+            border: none;
+            border-radius: 12px;
+            width: 60px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .btn-enviar:hover {
+            background-color: #388E3C; /* Verde más oscuro */
+        }
+
+        .icono-svg {
+            width: 24px;
+            height: 24px;
+        }
+        </style>
+</head>
+<body>
+  <div class="input-container">
+    <div class="input-box">
+      <label for="nombre">Nombre</label>
+      <input type="text" id="nombre" name="nombre" required>
+    </div>
+  </div>
+  
+  <div class="input-container">
+    <div class="input-box">
+      <label for="correo">Correo</label>
+      <input type="email" id="correo" name="correo" required>
+    </div>
+  </div>
+        
+  <!-- ---------------------------------- -->
+
+  <div class="question-box">
+    <div class="title">Preguntas necesarias</div>
+    <p class="question">1. ¿Cuál es tu nombre completo?</p>
+    <p class="question">2. ¿Cuál es tu dirección de correo electrónico?</p>
+    <p class="question">3. ¿Cuál es tu número de teléfono?</p>
+  </div>
+  <button>
+
+    <i class="fa-solid fa-paper-plane send-icon"></i>
+
+  </button>
+  <button>
+  <svg class="send-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M22 2l-10 7.5L2 9l3 10 9-7 10 4z"/>
+  </svg>
+</button>
+
+<button>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send-horizontal w-5 h-5">
+    <path d="M2 2l20 10-20 10V2z"></path>
+    <path d="M2 12h20"></path>
+  </svg>
+</button>
+
+<button class="btn-enviar">
+  <svg viewBox="0 0 24 24">
+      <path d="M2 12l18-10v20l-18-10z"/>
+  </svg>
+</button>
+
+<button class="btn-enviar">
+  <i class="bi bi-send-fill"></i>
+</button>
+
+
+<button class="btn-enviar">
+  <i class="bi-caret-right-fill"></i>
+</button>
+
+<button class="btn-enviar">
+  <svg class="icono-flecha" viewBox="0 0 24 24">
+      <path d="M8 5l8 7-8 7V5z"/>
+  </svg>
+</button>
+
+<button class="btn-enviar">
+  <img src="{{ url_for('static', filename='enviar-mensaje 2.svg') }}" alt="Flecha" class="icono-svg">
+</button>
+
+<!-- enviar-mensaje 2.svg -->
+
+
+</body>
+</html>

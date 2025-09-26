@@ -1,0 +1,60 @@
+{% extends "/dashboard/base.html" %}
+{% block title %}Logs del Sistema{% endblock %}
+
+{% block content %}
+    <div class="container py-4">
+        <h1 class="text-center mb-4">Registros de Logs</h1>
+
+        <table id="grid"></table>
+        <div id="pager"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/free-jqgrid/js/jquery.jqgrid.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $("#grid").jqGrid({
+                url: '/get_logs',
+                datatype: "json",
+                mtype: "GET",
+                colNames: ["ID", "Fecha", "Nivel", "Mensaje", "Módulo", "Función", "Usuario", "Tiempo de Respuesta"],
+                colModel: [
+                    { label: 'ID', name: 'id', width: 50, key: true },
+                    { label: 'Fecha', name: 'timestamp', width: 150, formatter: 'date', formatoptions: { srcformat: 'Y-m-d H:i:s', newformat: 'd/m/Y H:i' } },
+                    { label: 'Nivel', name: 'level', width: 100 },
+                    { label: 'Mensaje', name: 'message', width: 250 },
+                    { label: 'Módulo', name: 'module', width: 120 },
+                    { label: 'Función', name: 'function', width: 120 },
+                    { label: 'Usuario', name: 'user_id', width: 80, align: "center" },
+                    { label: 'Tiempo de Respuesta', name: 'response_time', width: 100, align: "right" }
+                ],
+                pager: "#pager",
+                rowNum: 10,
+                rowList: [10, 20, 30],
+                sortname: "timestamp",
+                sortorder: "desc",
+                viewrecords: true,
+                gridview: true,
+                autowidth: true,
+                height: "auto",
+                caption: "Logs del Sistema",
+                loadError: function(xhr, status, error) {
+                    console.error("Error al cargar datos:", error, xhr.responseText);
+                }
+            });
+
+            // Habilitar la barra de búsqueda
+            $("#grid").jqGrid('filterToolbar', {
+                stringResult: true,
+                searchOnEnter: false,
+                defaultSearch: "cn"
+            });
+
+            $("#grid").jqGrid('navGrid', '#pager',
+                { edit: false, add: false, del: false, search: true, refresh: true }
+            );
+        });
+    </script>
+{% endblock %}

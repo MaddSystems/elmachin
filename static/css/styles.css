@@ -1,0 +1,483 @@
+
+/* #content { */
+    /* width: 820px; */
+    /* position: absolute; Permite posicionar el elemento manualmente */
+    /* top: 5px;           Lo coloca a 5px desde la parte superior */
+    /* margin: 0 auto;          Asegura que no haya márgenes adicionales */
+/* } */
+
+#content {
+    width: 100%; /* Ocupa el 100% del ancho disponible */
+    max-width: 820px; /* Limita el ancho máximo */
+    position: relative; /* Cambia a relative para mejor manejo en móviles */
+    top: 0;
+    margin: 0 auto;
+}
+
+#status {
+clear: both;
+padding: 20px 0 0 0;
+text-align: left;
+display: inline-block;
+zoom: 1;
+line-height: 140%;
+font-size: 15px;
+}
+
+#status div {
+padding-bottom: 10px;
+}
+
+#machin-play{
+    padding: 10px 20px;
+    margin: 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #1D4ED8;
+    color: white;
+}
+
+#talk-video {
+    display: block;
+    border-radius: 50%;
+    max-width: 100%; /* Hace que el video sea más flexible */
+    height: auto;    /* Mantiene la relación de aspecto */
+  }
+
+  #video-wrapper {
+    background: url(../bg.png);
+    height: auto;
+    width: 100%; /* Asegura que el contenedor ocupe el 100% del ancho disponible */
+    display: flex;
+    justify-content: center; /* Centra el contenido horizontalmente */
+    align-items: center; /* Centra el contenido verticalmente */
+  }
+  
+  #video-wrapper div {
+    /* width: auto; */
+    margin: 0 auto;
+    padding: 25px 25px 25px 25px;
+  }
+
+/* CSS para Chat*/
+
+button {
+    margin: 0 5px;
+}
+button:hover {
+background-color: #2468b4;
+cursor: pointer;
+transition: all 0.2s ease-out;
+}
+
+.mic-button {
+    padding: 10px 15px;
+    background-color: #f3f4f6;
+    background: #1e599b;
+    color: white;
+    border: none;
+    border-radius: 20%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+  }
+  
+  .mic-button:hover {
+    background-color: #2468b4;
+  }
+  
+  .mic-button.recording {
+    background-color: #f87171; /* Rojo indicando grabación */
+    color: white;
+  }
+
+  .btn-enviar {
+    background-color: #4CAF50; /* Verde */
+    border: none;
+    border-radius: 12px;
+    width: 60px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+.btn-enviar:hover {
+    background-color: #388E3C; 
+}
+.icono-svg {
+    width: 24px;
+    height: 24px;
+}
+
+
+body {
+    font-family: 'Helvética', sans-serif;
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.chat-container {
+    width: 100%;
+    max-width: 500px;
+    margin: 2px auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.chat-messages {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Predeterminado: Mensajes del bot alineados a la izquierda */
+    padding: 10px;
+    height: 350px;
+    overflow-y: auto;
+    background-color: #fafdff;
+    /* font-family: Arial, sans-serif; */
+}
+
+/* -------------> Estilos de mensajes */
+.message {
+    margin: 10px 0;
+    padding: 10px;
+    /*border-radius: 10px;*/
+    max-width: 80%;
+    line-height: 1.5;
+}
+
+.message.user {
+    background-color: #dadef6;
+    align-self: flex-end;
+    text-align: right;
+    color: #000000;
+    border-top-left-radius: 10px; /* Esquina superior izquierda */
+    border-top-right-radius: 10px; /* Esquina superior derecha */
+    border-bottom-left-radius: 10px; /* Esquina inferior izquierda */
+}
+
+.message.Machín {
+    background-color: #d9edf7;
+    align-self: flex-start;
+    text-align: left;
+    color: #000000;
+    border-top-left-radius: 10px; /* Esquina superior izquierda */
+    border-top-right-radius: 10px; /* Esquina superior derecha */
+    border-bottom-right-radius: 10px; /* Esquina inferior derecha */
+}
+
+.message.vendedor {
+    background-color: #f7ead9;
+    align-self: flex-start;
+    text-align: left;
+    color: #000000;
+    border-top-left-radius: 10px; /* Esquina superior izquierda */
+    border-top-right-radius: 10px; /* Esquina superior derecha */
+    border-bottom-right-radius: 10px; /* Esquina inferior derecha */
+}
+
+.message video {
+    max-width: 100%; /* Para que el video no exceda el ancho del mensaje */
+    height: auto; /* Mantiene la proporción del video */
+    display: block; /* Evita márgenes extra no deseados */
+    max-height: 250px; /* Ajuste para pantallas grandes */
+    border-radius: 8px; /* Opcional: para que el video tenga bordes redondeados */
+}
+
+/* #typing-indicator { */
+    /* font-style: italic; */
+    /* color: gray; */
+  /* } */
+
+.message strong {
+    font-weight: bold;
+}
+.message a {
+    color: #007bff;
+    text-decoration: none;
+}
+.message a:hover {
+    text-decoration: underline;
+}
+
+.chat-input {
+    display: flex;
+    border-top: 1px solid #ddd;
+    background: #fff;
+}
+.chat-input input {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 0;
+    outline: none;
+    font-size: 16px;
+}
+
+/*-----------> Estilos de Cabecera */
+
+.chat-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.chat-header {
+    background: #153a63;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    font-size: 18px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.thinking-dots {
+    display: flex;
+    gap: 8px; /* Más separación entre los cuadrados */
+    opacity: 0; /* Oculto por defecto */
+    margin-left: 15px; /* Mayor separación del título */
+}
+
+.thinking-dots span {
+    width: 12px;
+    height: 12px;
+    background-color: red;
+    animation: thinking 1.5s infinite;
+}
+
+/* Diferente delay y color para cada cuadrado */
+.thinking-dots span:nth-child(1) { animation-delay: 0s; background-color: #ff0000; } /* Rojo */
+.thinking-dots span:nth-child(2) { animation-delay: 0.3s; background-color: #00ff00; } /* Verde */
+.thinking-dots span:nth-child(3) { animation-delay: 0.6s; background-color: #0e82df; } /* Azul */
+
+@keyframes thinking {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.5) rotate(45deg); } /* Se agrandan y giran */
+}
+
+/* Clase para mostrar los puntos */
+.show-thinking {
+    opacity: 1 !important;
+}
+
+
+/* .chat-actions button { */
+    /* background: #1e599b; */
+    /* color: white; */
+    /* border: none; */
+    /* cursor: pointer; */
+    /* padding: 10px 15px; */
+    /* border-radius: 8px; */
+    /* display: flex; */
+    /* align-items: center; */
+    /* justify-content: center; */
+    /* gap: 8px; */
+    /* transition: background-color 0.3s ease, transform 0.2s ease; */
+    /* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); */
+    /* font-size: 16px; */
+/* } */
+/*  */
+/* .chat-actions button:hover { */
+    /* background: #2468b4; */
+/* } */
+/*  */
+/* .chat-actions svg { */
+    /* width: 20px; */
+    /* height: 20px; */
+    /* stroke: #ffffff; */
+/* } */
+/*  */
+/* .chat-actions button:hover svg { */
+    /* stroke: #2468b4; */
+/* } */
+
+/* ----------> Estilos de Typing */
+
+.typing-indicator span {
+    font-size: 26px; /* Puntos más grandes */
+    font-weight: bold;
+    display: inline-block;
+    color: #0011ff; /* Color azul (puedes cambiarlo) */
+    margin-left: 8px; /* Aumenta la separación entre los puntos */
+    animation: blink 1.5s infinite;
+    transform: scale(1.5);
+  }
+  
+.typing-indicator span:nth-child(1) { animation-delay: 0s; }
+.typing-indicator span:nth-child(2) { animation-delay: 0.3s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.6s; }
+
+@keyframes blink {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.8); } /* Crece un poco al aparecer */
+}
+
+.typing-indicator {
+    /* font-size: 18px; */
+    background-color: #d9edf7;
+    align-self: flex-start;
+    text-align: left;
+    color: #000000;
+    border-top-left-radius: 10px; /* Esquina superior izquierda */
+    border-top-right-radius: 10px; /* Esquina superior derecha */
+    border-bottom-right-radius: 10px; /* Esquina inferior derecha */
+}
+
+/* ----------> Estilos de Respuestas Rapidas */
+
+.quick-responses {
+    position: relative;
+    border-top: 2px solid #ccc;
+    background-color: #f0f2f5;
+    padding-top: 18px;
+    padding-bottom: 10px;
+    margin-top: 8px;
+    min-height: 50px; /* Asegura que no desaparezca si está vacío */
+    transition: all 0.3s ease-in-out;
+    flex-wrap: wrap;
+    display: flex; /* Flexbox para centrado */
+    justify-content: center; /* Centra el contenido horizontalme*/
+    align-items: center; /* Centra el contenido verticalmente */
+}
+
+.quick-responses .title-responses {
+    position: absolute;
+    top: -10px; /* Ajuste para que quede sobre el borde */
+    left: 15px;
+    background: #f0f2f5; /* Debe coincidir con el fondo del contenedor */
+    padding: 0 5px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #7a7070;
+    border-radius: 8px;
+    z-index: 2; /* Asegura que el título esté por encima de los elementos */
+    white-space: nowrap; /* Evita que se corte si el texto es largo */
+}
+
+.quick-responses .response {
+    background: #0e82df;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    border: 1px solid #e0e0e0;
+    transition: background-color 0.3s;
+    color: white;
+    margin-bottom: 5px;
+}
+
+.styled-text {
+    background: #0e82df;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    border: 1px solid #e0e0e0;
+    color: white;
+    margin-bottom: 5px;
+}
+
+.quick-responses .response:hover {
+    background-color: #2468b4;
+}
+
+
+.quick-responses:not(:has(.response))::after {
+    content: "No hay respuestas sugeridas.";
+    display: block;
+    text-align: center;
+    color: #999;
+    font-style: italic;
+    padding: 5px;
+}
+
+
+/* Animaciones de aparición y desaparición */
+.fade-in {
+    animation: fadeIn 0.5s ease forwards;
+}
+.fade-out {
+    animation: fadeOut 0.5s ease forwards;
+}
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+
+@media (max-width: 768px) {
+    /* Estilos para pantallas más pequeñas */ 
+    body {
+        align-items: top;
+    }
+    
+    .chat-container {
+        max-width: 100%;
+    }
+
+    #content {
+        width: 820px;
+        position: relative; /* Permite posicionar el elemento*/
+        top: 0px;           /* Lo coloca a 2px desde la parte superior */
+        margin: 0 auto;      /* Asegura que no haya márgenes adicionales */
+        padding: 5px; /* Reduce el padding en móviles */
+    }
+
+    #video-wrapper div {
+        align-items: top;
+        width: 400px;
+        margin: 0 auto;
+        padding: 2px 2px 2px 2px;
+    }
+    
+    #talk-video {
+        width: 50%; /* Redimensiona el video en dispositivos móviles */
+        height: auto;
+        margin: 0 auto;
+    }
+
+    .message video {
+        max-height: 180px; /* Reducimos la altura en móviles */
+    }
+
+    .chat-header {
+        font-size: 16px;
+        padding: 1px;
+    }
+
+    .chat-input input, .chat-input button {
+        font-size: 14px;
+    }
+    
+}
